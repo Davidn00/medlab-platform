@@ -14,48 +14,6 @@ from app.core.security import hash_password
 
 
 # ==========================================================
-# Crear usuario administrador para las pruebas
-# ==========================================================
-
-@pytest.fixture(scope="session", autouse=True)
-def create_test_admin():
-    """
-    Crea el usuario administrador utilizado por los tests.
-
-    Este usuario existe únicamente en la base de datos
-    utilizada durante las pruebas.
-    """
-
-    db: Session = SessionLocal()
-
-    try:
-        # Verificar si el usuario ya existe
-        admin = (
-            db.query(User)
-            .filter(User.email == "admin@medlab.com")
-            .first()
-        )
-
-        # Si no existe, crearlo
-        if not admin:
-
-            admin = User(
-                full_name="Administrador de Pruebas",
-                email="admin@medlab.com",
-                hashed_password=hash_password("admin123"),
-                role=UserRole.ADMIN,
-                is_active=True,
-            )
-
-            db.add(admin)
-            db.commit()
-            db.refresh(admin)
-
-    finally:
-        db.close()
-
-
-# ==========================================================
 # Cliente HTTP
 # ==========================================================
 
@@ -68,3 +26,54 @@ def client():
 
     with TestClient(app) as test_client:
         yield test_client
+
+
+# ==========================================================
+# Usuario administrador para pruebas
+# ==========================================================
+
+@pytest.fixture(scope="session", autouse=True)
+def create_test_admin():
+    """
+    Crea automáticamente el usuario administrador utilizado
+    por los tests.
+
+    Usuario:
+        admin@medlab.com
+
+    Contraseña:
+        admin123
+    """
+
+    db: Session = SessionLocal()
+
+    try:
+        # --------------------------------------------------
+        # Comprobar si el usuario ya existe
+        # --------------------------------------------------
+
+        existing_user = (
+            db.query(User)
+            .filter(User.email == "admin@medlab.com")
+            .first()
+        )
+
+        # --------------------------------------------------
+        # Si no existe, crearlo
+        # --------------------------------------------------
+
+        if not existing_user:
+
+            admin = User(
+                full_name="Administrador de Pruebas",
+                email="admin@medlab.com",
+                hashed_password=hash_password("admin123"),
+                role=UserRole.ADMIN,
+                is_active=True,
+            )
+
+            db.add(admin)
+            db.commit()
+
+    finally:
+        db.close()

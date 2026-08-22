@@ -5,6 +5,8 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -21,6 +23,7 @@ from app.models.user import User, UserRole
 router = APIRouter(prefix="/users", tags=["Users"])
 
 service = UserService()
+
 
 
 # ==========================================================
@@ -43,12 +46,33 @@ def create_user(
 
 
 # ==========================================================
+# Listar usuario autenticado
+# ==========================================================
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    current_user: User = Depends(
+        require_roles([
+            UserRole.ADMIN,
+            UserRole.TECHNICIAN,
+            UserRole.DOCTOR,
+        ])
+    ),
+):
+    """
+    Devuelve la información del usuario autenticado.
+    """
+
+    return current_user
+
+
+# ==========================================================
 # Obtener usuario por ID
 # ==========================================================
 
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(
-    user_id: int,
+    user_id: uuid.UUID,
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_roles([UserRole.ADMIN])
@@ -76,22 +100,3 @@ def get_users(
     return service.get_users(db)
 
 
-# ==========================================================
-# Listar usuario autenticado
-# ==========================================================
-
-@router.get("/me", response_model=UserResponse)
-def get_me(
-    current_user: User = Depends(
-        require_roles([
-            UserRole.ADMIN,
-            UserRole.TECHNICIAN,
-            UserRole.DOCTOR,
-        ])
-    ),
-):
-    """
-    Devuelve la información del usuario autenticado.
-    """
-
-    return current_user
