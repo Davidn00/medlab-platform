@@ -14,6 +14,7 @@ from app.api.v1.samples import router as samples_router
 from app.api.v1.laboratory_tests import router as laboratory_tests_router
 from app.api.v1.reports import router as reports_router
 from app.api.v1.audit import router as audit_router
+from app.api.v1.tasks import router as tasks_router
 
 # ...
 
@@ -59,3 +60,4 @@ app.include_router(samples_router, prefix="/api/v1")
 app.include_router(laboratory_tests_router, prefix="/api/v1")
 app.include_router(reports_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
+app.include_router(tasks_router, prefix="/api/v1")
