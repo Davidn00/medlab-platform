@@ -1,8 +1,6 @@
 """
 Tareas asíncronas de MedLab Platform.
 
-Contiene las tareas que serán ejecutadas por Celery Worker.
-
 Autor: David
 Proyecto: MedLab Platform
 """
@@ -15,7 +13,8 @@ from app.workers.celery_app import celery_app
 )
 def test_task(name: str) -> str:
     """
-    Tarea de prueba para validar la infraestructura
+    Tarea de prueba para validar la comunicación:
+
     FastAPI → Redis → Celery Worker.
 
     Parameters
@@ -29,6 +28,7 @@ def test_task(name: str) -> str:
         Mensaje generado por el Worker.
     """
 
-    message = f"Hola {name}, Celery está funcionando correctamente."
+    if not name or not name.strip():
+        raise ValueError("El nombre no puede estar vacío.")
 
-    return message
+    return f"Hola {name}, Celery está funcionando correctamente."

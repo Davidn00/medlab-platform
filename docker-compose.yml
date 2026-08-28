@@ -44,7 +44,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
 
     ports:
-      - "8000:8000"
+      - "8188:8000"
 
     volumes:
       - ./app:/app/app

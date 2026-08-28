@@ -1,14 +1,14 @@
 """
-Endpoints para tareas asíncronas.
+Endpoints relacionados con tareas asíncronas.
 
 Autor: David
 Proyecto: MedLab Platform
 """
 
-from fastapi import APIRouter
-
-from app.tasks.laboratory_tasks import test_task
 from celery.result import AsyncResult
+from fastapi import APIRouter, HTTPException, status
+from app.schemas.task import TaskRequest, TaskResponse, TaskStatusResponse
+from app.tasks.laboratory_tasks import test_task
 from app.workers.celery_app import celery_app
 
 
@@ -18,8 +18,12 @@ router = APIRouter(
 )
 
 
-@router.post("/test")
-def create_test_task(name: str):
+@router.post(
+    "/test",
+    response_model=TaskResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def create_test_task(payload: TaskRequest) -> TaskResponse:
     """
     Envía una tarea de prueba a Celery.
 
@@ -27,17 +31,21 @@ def create_test_task(name: str):
     mediante Celery Worker.
     """
 
-    task = test_task.delay(name)
+    task = test_task.delay(payload.name)
 
-    return {
-        "task_id": task.id,
-        "status": task.status,
-    }
+    return TaskResponse(
+        task_id=task.id,
+        status=task.status,
+    )
 
-@router.get("/{task_id}")
-def get_task_status(task_id: str):
+
+@router.get(
+    "/{task_id}",
+    response_model=TaskStatusResponse,
+)
+def get_task_status(task_id: str) -> TaskStatusResponse:
     """
-    Consulta el estado y resultado de una tarea Celery.
+    Consulta el estado de una tarea Celery.
     """
 
     task = AsyncResult(
@@ -45,15 +53,15 @@ def get_task_status(task_id: str):
         app=celery_app,
     )
 
-    response = {
-        "task_id": task_id,
-        "status": task.status,
-    }
+    response = TaskStatusResponse(
+        task_id=task_id,
+        status=task.status,
+    )
 
     if task.successful():
-        response["result"] = task.result
+        response.result = str(task.result)
 
-    if task.failed():
-        response["error"] = str(task.result)
+    elif task.failed():
+        response.error = str(task.result)
 
     return response
