@@ -65,6 +65,8 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore"  # Ignora variables no definidas en la clase
     )
+    
+    reports_dir: str = "/app/reports"
 
 
 # Creamos una única instancia de configuración.

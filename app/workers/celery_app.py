@@ -3,6 +3,7 @@ from celery import Celery
 from app.core.config import settings
 
 
+
 celery_app = Celery(
     "medlab_platform",
     broker=settings.celery_broker_url,
@@ -30,5 +31,6 @@ celery_app.autodiscover_tasks(
 )
 
 
-# Importar las tareas para que Celery las registre.
-import app.tasks.laboratory_tasks
+# Importar las tareas para que Celery las registre. 
+import app.tasks.laboratory_tasks 
+import app.tasks.report_tasks

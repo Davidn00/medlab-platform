@@ -1,9 +1,12 @@
+
 """
 Schemas relacionados con tareas asíncronas.
 
 Autor: David
 Proyecto: MedLab Platform
 """
+
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -37,5 +40,6 @@ class TaskStatusResponse(BaseModel):
 
     task_id: str
     status: str
-    result: str | None = None
+    result: Any | None = None
     error: str | None = None
+

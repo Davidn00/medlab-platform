@@ -26,3 +26,5 @@ venv/
 *.log
 
 documentation.docx  
+
+reports/*.pdf

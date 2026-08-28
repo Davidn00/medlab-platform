@@ -1,17 +1,20 @@
 """
-Endpoints para generación de reportes clínicos.
+Endpoints para generación y consulta de reportes clínicos.
+
+Autor: David
+Proyecto: MedLab Platform
 """
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from celery.result import AsyncResult
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.permissions import require_roles
-from app.db.session import get_db
 from app.models.user import UserRole
-from app.services.report_service import ReportService
+from app.schemas.task import TaskResponse, TaskStatusResponse
+from app.tasks.report_tasks import generate_report
+from app.workers.celery_app import celery_app
 
 
 router = APIRouter(
@@ -20,38 +23,67 @@ router = APIRouter(
 )
 
 
-@router.get(
+REPORT_ROLES = [
+    UserRole.ADMIN,
+    UserRole.TECHNICIAN,
+    UserRole.DOCTOR,
+]
+
+
+@router.post(
     "/sample/{sample_id}",
+    response_model=TaskResponse,
+    status_code=status.HTTP_202_ACCEPTED,
     dependencies=[
-        Depends(
-            require_roles(
-                [
-                    UserRole.ADMIN,
-                    UserRole.TECHNICIAN,
-                    UserRole.DOCTOR,
-                ]
-            )
-        )
+        Depends(require_roles(REPORT_ROLES))
     ],
 )
-def generate_sample_report(
+def create_sample_report(
     sample_id: UUID,
-    db: Session = Depends(get_db),
-):
+) -> TaskResponse:
     """
-    Genera un reporte PDF para una muestra.
+    Solicita de forma asíncrona la generación del reporte
+    PDF correspondiente a una muestra.
     """
 
-    service = ReportService(db)
+    task = generate_report.delay(str(sample_id))
 
-    pdf = service.generate_sample_report(sample_id)
-
-    return StreamingResponse(
-        iter([pdf]),
-        media_type="application/pdf",
-        headers={
-            "Content-Disposition": (
-                f"attachment; filename=sample_{sample_id}.pdf"
-            )
-        },
+    return TaskResponse(
+        task_id=task.id,
+        status=task.status,
     )
+
+
+@router.get(
+    "/tasks/{task_id}",
+    response_model=TaskStatusResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(require_roles(REPORT_ROLES))
+    ],
+)
+def get_report_task_status(
+    task_id: str,
+) -> TaskStatusResponse:
+    """
+    Consulta el estado de una tarea de generación de reportes.
+    """
+
+    task = AsyncResult(
+        task_id,
+        app=celery_app,
+    )
+
+    response = TaskStatusResponse(
+        task_id=task_id,
+        status=task.status,
+    )
+
+    if task.successful():
+        response.result = task.result
+
+    elif task.failed():
+        response.error = str(task.result)
+
+    return response
+
