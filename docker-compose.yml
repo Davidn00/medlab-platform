@@ -47,10 +47,12 @@ services:
       - "8188:8000"
 
     volumes:
-      - ./app:/app/app
-      - ./tests:/app/tests
-      - ./pytest.ini:/app/pytest.ini
-      - ./reports:/app/reports
+      - .:/app
+      # - ./app:/app/app
+      # - ./tests:/app/tests
+      # - ./pytest.ini:/app/pytest.ini
+      # - ./reports:/app/reports
+      # - ./alembic:/app/alembic
 
     command:
       - uvicorn
@@ -97,8 +99,9 @@ services:
       - redis
     
     volumes:
-      - ./app:/app/app
-      - ./reports:/app/reports
+        - .:/app
+      # - ./app:/app/app
+      # - ./reports:/app/reports
 
     restart: unless-stopped
     

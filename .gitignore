@@ -25,9 +25,17 @@ venv/
 
 *.log
 
+# Archivos temporales de Microsoft Office
+~$*
 documentation.docx  
+
 
 reports/*.pdf
 
 celerybeat-schedule
 celerybeat-schedule.*
+
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+
+medlab_backup.sql
