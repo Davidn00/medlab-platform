@@ -38,6 +38,14 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+     # ==========================================================
+    # Usuario administrador inicial
+    # ==========================================================
+
+    ADMIN_EMAIL: str
+    ADMIN_PASSWORD: str
+    ADMIN_FULL_NAME: str
+
     # ======================================
     # Base de datos
     # ======================================
