@@ -28,3 +28,6 @@ venv/
 documentation.docx  
 
 reports/*.pdf
+
+celerybeat-schedule
+celerybeat-schedule.*

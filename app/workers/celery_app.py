@@ -1,7 +1,7 @@
 from celery import Celery
 
 from app.core.config import settings
-
+from celery.schedules import crontab
 
 
 celery_app = Celery(
@@ -15,8 +15,9 @@ celery_app.conf.update(
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
-    timezone="America/Mexico_City",
+    timezone="UTC",
     enable_utc=True,
+    #timezone="America/Mexico_City",
     result_expires=3600,
     task_track_started=True,
     worker_prefetch_multiplier=1,
@@ -30,7 +31,15 @@ celery_app.autodiscover_tasks(
     ]
 )
 
+celery_app.conf.beat_schedule = {
+    "scheduled-health-check": {
+        "task": "medlab.tasks.scheduled_health_check",
+        "schedule": crontab(minute="*/5"),
+    },
+}
 
 # Importar las tareas para que Celery las registre. 
 import app.tasks.laboratory_tasks 
 import app.tasks.report_tasks
+import app.tasks.result_tasks
+import app.tasks.scheduled_tasks

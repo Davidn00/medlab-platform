@@ -1,20 +1,25 @@
+
 """
 Endpoints REST para pruebas de laboratorio.
 """
 
 from uuid import UUID
 
-
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.permissions import require_roles
 from app.db.session import get_db
-from app.models.user import UserRole, User 
-from app.schemas.laboratory_test import LaboratoryTestCreate, LaboratoryTestResponse, LaboratoryTestUpdate
+from app.models.user import User, UserRole
+from app.schemas.laboratory_test import (
+    LaboratoryTestCreate,
+    LaboratoryTestResponse,
+    LaboratoryTestUpdate,
+)
+from app.schemas.task import TaskResponse
 from app.services.laboratory_test_service import LaboratoryTestService
-
-from app.api.deps import get_current_user
+from app.tasks.result_tasks import process_laboratory_result
 
 
 router = APIRouter(
@@ -121,7 +126,7 @@ def update_test(
     return service.update_test(
         test_id,
         test_data,
-        current_user.id, 
+        current_user.id,
     )
 
 
@@ -134,7 +139,7 @@ def update_test(
                 [
                     UserRole.ADMIN,
                 ]
-            )   
+            )
         )
     ],
 )
@@ -147,3 +152,37 @@ def delete_test(
     service.delete_test(test_id)
 
     return None
+
+
+@router.post(
+    "/{test_id}/process",
+    response_model=TaskResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            require_roles(
+                [
+                    UserRole.ADMIN,
+                    UserRole.TECHNICIAN,
+                ]
+            )
+        )
+    ],
+)
+def process_test_result(
+    test_id: UUID,
+) -> TaskResponse:
+    """
+    Envía el resultado de una prueba a procesamiento
+    asíncrono mediante Celery.
+    """
+
+    task = process_laboratory_result.delay(
+        str(test_id)
+    )
+
+    return TaskResponse(
+        task_id=task.id,
+        status=task.status,
+    )
+

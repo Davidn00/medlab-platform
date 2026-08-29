@@ -101,6 +101,21 @@ services:
       - ./reports:/app/reports
 
     restart: unless-stopped
+    
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medlab_celery_beat
+    command: celery -A app.workers.celery_app.celery_app beat --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - .:/app
+
 
 
 volumes:
