@@ -10,6 +10,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.exceptions import EquipmentNotFoundError
 
 from app.db.session import get_db
 from app.repositories.biomedical_equipment_repository import (
@@ -69,6 +70,12 @@ def create_calibration(
 
     try:
         return service.create(data)
+
+    except EquipmentNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(exc),
+        ) from exc
 
     except ValueError as exc:
         raise HTTPException(

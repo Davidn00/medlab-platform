@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 from app.main import app
 from app.db.session import SessionLocal
 from app.models.user import User, UserRole
+from app.models.biomedical_equipment import BiomedicalEquipment
+from app.models.calibration import Calibration
 from app.core.security import hash_password
 
 
@@ -21,11 +23,83 @@ from app.core.security import hash_password
 def client():
     """
     Crea un cliente HTTP para realizar peticiones
-    contra nuestra aplicación FastAPI.
+    contra nuestra aplicación.
     """
 
     with TestClient(app) as test_client:
         yield test_client
+
+
+# ==========================================================
+# Limpieza de datos de prueba
+# ==========================================================
+
+@pytest.fixture(autouse=True)
+def clean_test_data():
+    """
+    Elimina los datos creados por los tests antes de
+    ejecutar cada prueba.
+
+    Solamente elimina registros identificados mediante
+    números de serie que comienzan con TEST-, evitando
+    afectar los datos reales de la aplicación.
+    """
+
+    db: Session = SessionLocal()
+
+    try:
+        # --------------------------------------------------
+        # Eliminar calibraciones asociadas a equipos TEST-
+        # --------------------------------------------------
+
+        test_equipment_ids = (
+            db.query(BiomedicalEquipment.id)
+            .filter(
+                BiomedicalEquipment.serial_number.like("TEST-%")
+            )
+            .all()
+        )
+
+        equipment_ids = [
+            equipment_id
+            for (equipment_id,) in test_equipment_ids
+        ]
+
+        if equipment_ids:
+            (
+                db.query(Calibration)
+                .filter(
+                    Calibration.equipment_id.in_(
+                        equipment_ids
+                    )
+                )
+                .delete(
+                    synchronize_session=False
+                )
+            )
+
+        # --------------------------------------------------
+        # Eliminar equipos de prueba
+        # --------------------------------------------------
+
+        (
+            db.query(BiomedicalEquipment)
+            .filter(
+                BiomedicalEquipment.serial_number.like("TEST-%")
+            )
+            .delete(
+                synchronize_session=False
+            )
+        )
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise
+
+    finally:
+        db.close()
 
 
 # ==========================================================
@@ -48,26 +122,22 @@ def create_test_admin():
     db: Session = SessionLocal()
 
     try:
-        # --------------------------------------------------
-        # Comprobar si el usuario ya existe
-        # --------------------------------------------------
-
         existing_user = (
             db.query(User)
-            .filter(User.email == "admin@medlab.com")
+            .filter(
+                User.email == "admin@medlab.com"
+            )
             .first()
         )
-
-        # --------------------------------------------------
-        # Si no existe, crearlo
-        # --------------------------------------------------
 
         if not existing_user:
 
             admin = User(
                 full_name="Administrador de Pruebas",
                 email="admin@medlab.com",
-                hashed_password=hash_password("admin123"),
+                hashed_password=hash_password(
+                    "admin123"
+                ),
                 role=UserRole.ADMIN,
                 is_active=True,
             )
@@ -77,3 +147,85 @@ def create_test_admin():
 
     finally:
         db.close()
+
+
+
+# """
+# Configuración compartida para las pruebas de MedLab Platform.
+# """
+
+# import pytest
+
+# from fastapi.testclient import TestClient
+# from sqlalchemy.orm import Session
+
+# from app.main import app
+# from app.db.session import SessionLocal
+# from app.models.user import User, UserRole
+# from app.core.security import hash_password
+
+
+# # ==========================================================
+# # Cliente HTTP
+# # ==========================================================
+
+# @pytest.fixture
+# def client():
+#     """
+#     Crea un cliente HTTP para realizar peticiones
+#     contra nuestra aplicación FastAPI.
+#     """
+
+#     with TestClient(app) as test_client:
+#         yield test_client
+
+
+# # ==========================================================
+# # Usuario administrador para pruebas
+# # ==========================================================
+
+# @pytest.fixture(scope="session", autouse=True)
+# def create_test_admin():
+#     """
+#     Crea automáticamente el usuario administrador utilizado
+#     por los tests.
+
+#     Usuario:
+#         admin@medlab.com
+
+#     Contraseña:
+#         admin123
+#     """
+
+#     db: Session = SessionLocal()
+
+#     try:
+#         # --------------------------------------------------
+#         # Comprobar si el usuario ya existe
+#         # --------------------------------------------------
+
+#         existing_user = (
+#             db.query(User)
+#             .filter(User.email == "admin@medlab.com")
+#             .first()
+#         )
+
+#         # --------------------------------------------------
+#         # Si no existe, crearlo
+#         # --------------------------------------------------
+
+#         if not existing_user:
+
+#             admin = User(
+#                 full_name="Administrador de Pruebas",
+#                 email="admin@medlab.com",
+#                 hashed_password=hash_password("admin123"),
+#                 role=UserRole.ADMIN,
+#                 is_active=True,
+#             )
+
+#             db.add(admin)
+#             db.commit()
+
+#     finally:
+#         db.close()

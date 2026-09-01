@@ -10,6 +10,7 @@ Proyecto: MedLab Platform
 
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
+from app.core.exceptions import EquipmentNotFoundError
 
 from app.models.calibration import Calibration
 from app.repositories.biomedical_equipment_repository import (
@@ -57,7 +58,7 @@ class CalibrationService:
         )
 
         if equipment is None:
-            raise ValueError(
+            raise EquipmentNotFoundError(
                 "El equipo biomédico indicado no existe."
             )
 
@@ -118,7 +119,7 @@ class CalibrationService:
         )
 
         if equipment is None:
-            raise ValueError(
+            raise EquipmentNotFoundError(
                 "El equipo biomédico indicado no existe."
             )
 
@@ -208,7 +209,7 @@ class CalibrationService:
             )
 
             if equipment is None:
-                raise ValueError(
+                raise EquipmentNotFoundError(
                     "El equipo biomédico indicado no existe."
                 )
 

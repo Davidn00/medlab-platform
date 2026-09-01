@@ -8,7 +8,10 @@ Proyecto: MedLab Platform
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import exc
 from sqlalchemy.orm import Session
+from app.core.exceptions import EquipmentNotFoundError
+from app.core.exceptions import EquipmentNotFoundError
 
 from app.db.session import get_db
 from app.repositories.biomedical_equipment_repository import (
@@ -201,7 +204,7 @@ def get_equipment_calibrations(
             equipment_id
         )
 
-    except ValueError as exc:
+    except EquipmentNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(exc),
