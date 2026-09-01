@@ -146,18 +146,19 @@ def update_equipment(
             data,
         )
 
+    except EquipmentNotFoundError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Equipo biomédico no encontrado.",
+            ) from exc
+    
     except EquipmentAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
         ) from exc
 
-    if equipment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Equipo biomédico no encontrado.",
-        )
-
+   
     return equipment
 
 

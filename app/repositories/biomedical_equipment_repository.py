@@ -27,11 +27,12 @@ class BiomedicalEquipmentRepository:
         equipment: BiomedicalEquipment,
     ) -> BiomedicalEquipment:
         """
-        Persiste un nuevo equipo biomédico.
+        Persiste un nuevo equipo biomédico dentro
+        de la transacción actual.
         """
 
         self.db.add(equipment)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(equipment)
 
         return equipment
@@ -89,10 +90,11 @@ class BiomedicalEquipmentRepository:
         equipment: BiomedicalEquipment,
     ) -> BiomedicalEquipment:
         """
-        Actualiza un equipo existente.
+        Actualiza un equipo existente dentro
+        de la transacción actual.
         """
 
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(equipment)
 
         return equipment
@@ -102,8 +104,9 @@ class BiomedicalEquipmentRepository:
         equipment: BiomedicalEquipment,
     ) -> None:
         """
-        Elimina un equipo.
+        Elimina un equipo dentro de la transacción actual.
         """
 
         self.db.delete(equipment)
-        self.db.commit()
+        self.db.flush()
+

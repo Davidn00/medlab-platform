@@ -31,10 +31,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      APP_NAME: MedLab Platform
-      SECRET_KEY: ci-test-secret-key
-      ACCESS_TOKEN_EXPIRE_MINUTES: 30
-      
       ADMIN_EMAIL: admin@medlab.com
       ADMIN_PASSWORD: admin123
       ADMIN_FULL_NAME: Administrador MedLab

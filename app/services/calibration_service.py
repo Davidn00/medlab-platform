@@ -10,8 +10,12 @@ Proyecto: MedLab Platform
 
 from datetime import datetime, timezone, timedelta
 from uuid import UUID
-from app.core.exceptions import EquipmentNotFoundError
 
+from app.core.exceptions import (
+    CalibrationNotFoundError,
+    EquipmentNotFoundError,
+    InvalidCalibrationDatesError,
+)
 from app.models.calibration import Calibration
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
@@ -23,16 +27,14 @@ from app.schemas.calibration import (
     CalibrationCreate,
     CalibrationUpdate,
 )
-from app.core.exceptions import (
-    CalibrationNotFoundError,
-    EquipmentNotFoundError,
-    InvalidCalibrationDatesError,
-)
 
 
 class CalibrationService:
     """
     Lógica de negocio de calibraciones.
+
+    El Service es responsable de controlar las
+    transacciones de las operaciones de negocio.
     """
 
     def __init__(
@@ -54,39 +56,56 @@ class CalibrationService:
     ) -> Calibration:
         """
         Crea una nueva calibración.
+
+        La operación completa se confirma mediante
+        commit desde la capa Service.
         """
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                data.equipment_id
-            )
-        )
+        db = self.calibration_repository.db
 
-        if equipment is None:
-            raise EquipmentNotFoundError(
-                "El equipo biomédico indicado no existe."
+        try:
+            equipment = (
+                self.equipment_repository.get_by_id(
+                    data.equipment_id
+                )
             )
 
-        self._validate_dates(
-            data.calibration_date,
-            data.next_calibration_date,
-        )
+            if equipment is None:
+                raise EquipmentNotFoundError(
+                    "El equipo biomédico indicado no existe."
+                )
 
-        calibration = Calibration(
-            equipment_id=data.equipment_id,
-            calibration_date=data.calibration_date,
-            next_calibration_date=(
-                data.next_calibration_date
-            ),
-            performed_by=data.performed_by,
-            certificate_number=data.certificate_number,
-            status=data.status,
-            notes=data.notes,
-        )
+            self._validate_dates(
+                data.calibration_date,
+                data.next_calibration_date,
+            )
 
-        return self.calibration_repository.create(
-            calibration
-        )
+            calibration = Calibration(
+                equipment_id=data.equipment_id,
+                calibration_date=data.calibration_date,
+                next_calibration_date=(
+                    data.next_calibration_date
+                ),
+                performed_by=data.performed_by,
+                certificate_number=data.certificate_number,
+                status=data.status,
+                notes=data.notes,
+            )
+
+            calibration = (
+                self.calibration_repository.create(
+                    calibration
+                )
+            )
+
+            db.commit()
+            db.refresh(calibration)
+
+            return calibration
+
+        except Exception:
+            db.rollback()
+            raise
 
     def get_by_id(
         self,
@@ -150,7 +169,6 @@ class CalibrationService:
             )
 
         now = datetime.now(timezone.utc)
-
         end_date = now + timedelta(days=days)
 
         return (
@@ -185,60 +203,78 @@ class CalibrationService:
     ) -> Calibration | None:
         """
         Actualiza una calibración.
+
+        La operación se confirma mediante commit
+        desde la capa Service.
         """
 
-        calibration = (
-            self.calibration_repository.get_by_id(
-                calibration_id
-            )
-        )
+        db = self.calibration_repository.db
 
-        if calibration is None:
-            return None
-
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
-
-        equipment_id = update_data.get(
-            "equipment_id",
-            calibration.equipment_id,
-        )
-
-        if "equipment_id" in update_data:
-
-            equipment = (
-                self.equipment_repository.get_by_id(
-                    equipment_id
+        try:
+            calibration = (
+                self.calibration_repository.get_by_id(
+                    calibration_id
                 )
             )
 
-            if equipment is None:
-                raise EquipmentNotFoundError(
-                    "El equipo biomédico indicado no existe."
+            if calibration is None:
+                return None
+
+            update_data = data.model_dump(
+                exclude_unset=True
+            )
+
+            equipment_id = update_data.get(
+                "equipment_id",
+                calibration.equipment_id,
+            )
+
+            if "equipment_id" in update_data:
+
+                equipment = (
+                    self.equipment_repository.get_by_id(
+                        equipment_id
+                    )
                 )
 
-        calibration_date = update_data.get(
-            "calibration_date",
-            calibration.calibration_date,
-        )
+                if equipment is None:
+                    raise EquipmentNotFoundError(
+                        "El equipo biomédico indicado "
+                        "no existe."
+                    )
 
-        next_calibration_date = update_data.get(
-            "next_calibration_date",
-            calibration.next_calibration_date,
-        )
+            calibration_date = update_data.get(
+                "calibration_date",
+                calibration.calibration_date,
+            )
 
-        self._validate_dates(
-            calibration_date,
-            next_calibration_date,
-        )
+            next_calibration_date = update_data.get(
+                "next_calibration_date",
+                calibration.next_calibration_date,
+            )
 
-        for field, value in update_data.items():
-            setattr(calibration, field, value)
+            self._validate_dates(
+                calibration_date,
+                next_calibration_date,
+            )
 
-        return self.calibration_repository.update(
-            calibration
-        )
+            for field, value in update_data.items():
+                setattr(calibration, field, value)
+
+            calibration = (
+                self.calibration_repository.update(
+                    calibration
+                )
+            )
+
+            db.commit()
+            db.refresh(calibration)
+
+            return calibration
+
+        except Exception:
+            db.rollback()
+            raise
 
     def delete(
         self,
@@ -246,22 +282,34 @@ class CalibrationService:
     ) -> bool:
         """
         Elimina una calibración.
+
+        La eliminación se confirma mediante commit
+        desde la capa Service.
         """
 
-        calibration = (
-            self.calibration_repository.get_by_id(
-                calibration_id
+        db = self.calibration_repository.db
+
+        try:
+            calibration = (
+                self.calibration_repository.get_by_id(
+                    calibration_id
+                )
             )
-        )
 
-        if calibration is None:
-            return False
+            if calibration is None:
+                return False
 
-        self.calibration_repository.delete(
-            calibration
-        )
+            self.calibration_repository.delete(
+                calibration
+            )
 
-        return True
+            db.commit()
+
+            return True
+
+        except Exception:
+            db.rollback()
+            raise
 
     @staticmethod
     def _validate_dates(
@@ -278,3 +326,4 @@ class CalibrationService:
                 "debe ser posterior a la fecha de "
                 "calibración."
             )
+

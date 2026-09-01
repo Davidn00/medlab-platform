@@ -32,7 +32,7 @@ class CalibrationRepository:
         """
 
         self.db.add(calibration)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(calibration)
 
         return calibration
@@ -141,7 +141,7 @@ class CalibrationRepository:
         Actualiza una calibración existente.
         """
 
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(calibration)
 
         return calibration
@@ -155,4 +155,4 @@ class CalibrationRepository:
         """
 
         self.db.delete(calibration)
-        self.db.commit()
+        self.db.flush()
