@@ -29,12 +29,17 @@ on:
 jobs:
 
   test:
-
-
-
     runs-on: ubuntu-latest
+    env:
+      APP_NAME: MedLab Platform
+      SECRET_KEY: ci-test-secret-key
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+      
+      ADMIN_EMAIL: admin@medlab.com
+      ADMIN_PASSWORD: admin123
+      ADMIN_FULL_NAME: Administrador MedLab
 
-
+    
 
     services:
 
@@ -45,17 +50,13 @@ jobs:
 
 
         env:
-
           POSTGRES_DB: medlab_test
-
           POSTGRES_USER: medlab_user
-
           POSTGRES_PASSWORD: medlab_password
 
 
 
         ports:
-
           - 5432:5432
 
 
@@ -69,13 +70,11 @@ jobs:
 
 
       - name: Checkout repository
-
         uses: actions/checkout@v4
 
 
 
       - name: Setup Python
-
         uses: actions/setup-python@v5
 
         with:
