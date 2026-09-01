@@ -28,6 +28,11 @@ from app.schemas.calibration import (
 from app.services.calibration_service import (
     CalibrationService,
 )
+from app.core.exceptions import (
+    CalibrationNotFoundError,
+    EquipmentNotFoundError,
+    InvalidCalibrationDatesError,
+)
 
 
 router = APIRouter(
@@ -77,7 +82,7 @@ def create_calibration(
             detail=str(exc),
         ) from exc
 
-    except ValueError as exc:
+    except InvalidCalibrationDatesError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
@@ -190,9 +195,9 @@ def update_calibration(
             data,
         )
 
-    except ValueError as exc:
+    except CalibrationNotFoundError as exc:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(exc),
         ) from exc
 

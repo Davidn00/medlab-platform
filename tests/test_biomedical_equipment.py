@@ -227,3 +227,49 @@ def test_delete_equipment(
 
     assert get_response.status_code == 404
 
+def test_cannot_delete_equipment_with_calibrations(
+    client: TestClient,
+):
+    """
+    Un equipo con historial de calibraciones no debe
+    eliminarse físicamente.
+    """
+
+    equipment_response = client.post(
+        "/api/v1/equipment",
+        json={
+            "name": "Equipo con historial",
+            "manufacturer": "MedLab",
+            "model": "TEST-HISTORY",
+            "serial_number": "TEST-HISTORY-001",
+            "location": "Laboratorio",
+            "status": "ACTIVE",
+        },
+    )
+
+    assert equipment_response.status_code == 201
+
+    equipment_id = equipment_response.json()["id"]
+
+    calibration_response = client.post(
+        "/api/v1/calibrations",
+        json={
+            "equipment_id": equipment_id,
+            "calibration_date": (
+                "2026-08-01T10:00:00Z"
+            ),
+            "next_calibration_date": (
+                "2027-08-01T10:00:00Z"
+            ),
+            "performed_by": "Técnico MedLab",
+            "status": "VALID",
+        },
+    )
+
+    assert calibration_response.status_code == 201
+
+    delete_response = client.delete(
+        f"/api/v1/equipment/{equipment_id}"
+    )
+
+    assert delete_response.status_code == 409

@@ -16,54 +16,41 @@ from app.core.security import hash_password
 
 
 # ==========================================================
-# Cliente HTTP
-# ==========================================================
-
-@pytest.fixture
-def client():
-    """
-    Crea un cliente HTTP para realizar peticiones
-    contra nuestra aplicación.
-    """
-
-    with TestClient(app) as test_client:
-        yield test_client
-
-
-# ==========================================================
 # Limpieza de datos de prueba
 # ==========================================================
 
 @pytest.fixture(autouse=True)
 def clean_test_data():
     """
-    Elimina los datos creados por los tests antes de
-    ejecutar cada prueba.
+    Limpia los datos creados por las pruebas antes de cada test.
 
-    Solamente elimina registros identificados mediante
-    números de serie que comienzan con TEST-, evitando
-    afectar los datos reales de la aplicación.
+    Solamente elimina equipos cuyo número de serie comienza
+    con TEST-, evitando modificar datos reales.
     """
 
     db: Session = SessionLocal()
 
     try:
         # --------------------------------------------------
-        # Eliminar calibraciones asociadas a equipos TEST-
+        # Obtener los IDs de los equipos de prueba
         # --------------------------------------------------
-
-        test_equipment_ids = (
-            db.query(BiomedicalEquipment.id)
-            .filter(
-                BiomedicalEquipment.serial_number.like("TEST-%")
-            )
-            .all()
-        )
 
         equipment_ids = [
             equipment_id
-            for (equipment_id,) in test_equipment_ids
+            for (equipment_id,) in (
+                db.query(BiomedicalEquipment.id)
+                .filter(
+                    BiomedicalEquipment.serial_number.like(
+                        "TEST-%"
+                    )
+                )
+                .all()
+            )
         ]
+
+        # --------------------------------------------------
+        # Eliminar calibraciones de los equipos de prueba
+        # --------------------------------------------------
 
         if equipment_ids:
             (
@@ -85,7 +72,9 @@ def clean_test_data():
         (
             db.query(BiomedicalEquipment)
             .filter(
-                BiomedicalEquipment.serial_number.like("TEST-%")
+                BiomedicalEquipment.serial_number.like(
+                    "TEST-%"
+                )
             )
             .delete(
                 synchronize_session=False
@@ -100,6 +89,21 @@ def clean_test_data():
 
     finally:
         db.close()
+
+
+# ==========================================================
+# Cliente HTTP
+# ==========================================================
+
+@pytest.fixture
+def client():
+    """
+    Crea un cliente HTTP para realizar peticiones
+    contra la aplicación FastAPI.
+    """
+
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 # ==========================================================
@@ -130,8 +134,7 @@ def create_test_admin():
             .first()
         )
 
-        if not existing_user:
-
+        if existing_user is None:
             admin = User(
                 full_name="Administrador de Pruebas",
                 email="admin@medlab.com",

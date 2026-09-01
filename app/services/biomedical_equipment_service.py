@@ -10,9 +10,17 @@ Proyecto: MedLab Platform
 
 from uuid import UUID
 
+from app.core.exceptions import (
+    EquipmentAlreadyExistsError,
+    EquipmentHasCalibrationsError,
+    EquipmentNotFoundError,
+)
 from app.models.biomedical_equipment import BiomedicalEquipment
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
+)
+from app.repositories.calibration_repository import (
+    CalibrationRepository,
 )
 from app.schemas.biomedical_equipment import (
     BiomedicalEquipmentCreate,
@@ -27,9 +35,11 @@ class BiomedicalEquipmentService:
 
     def __init__(
         self,
-        repository: BiomedicalEquipmentRepository,
+        equipment_repository: BiomedicalEquipmentRepository,
+        calibration_repository: CalibrationRepository,
     ):
-        self.repository = repository
+        self.equipment_repository = equipment_repository
+        self.calibration_repository = calibration_repository
 
     def create(
         self,
@@ -40,13 +50,13 @@ class BiomedicalEquipmentService:
         """
 
         existing_equipment = (
-            self.repository.get_by_serial_number(
+            self.equipment_repository.get_by_serial_number(
                 data.serial_number
             )
         )
 
         if existing_equipment:
-            raise ValueError(
+            raise EquipmentAlreadyExistsError(
                 "Ya existe un equipo con ese número de serie."
             )
 
@@ -59,7 +69,7 @@ class BiomedicalEquipmentService:
             status=data.status,
         )
 
-        return self.repository.create(equipment)
+        return self.equipment_repository.create(equipment)
 
     def get_by_id(
         self,
@@ -69,7 +79,9 @@ class BiomedicalEquipmentService:
         Obtiene un equipo por su UUID.
         """
 
-        return self.repository.get_by_id(equipment_id)
+        return self.equipment_repository.get_by_id(
+            equipment_id
+        )
 
     def get_all(
         self,
@@ -78,23 +90,25 @@ class BiomedicalEquipmentService:
         Obtiene todos los equipos.
         """
 
-        return self.repository.get_all()
+        return self.equipment_repository.get_all()
 
     def update(
         self,
         equipment_id: UUID,
         data: BiomedicalEquipmentUpdate,
-    ) -> BiomedicalEquipment | None:
+    ) -> BiomedicalEquipment:
         """
         Actualiza un equipo existente.
         """
 
-        equipment = self.repository.get_by_id(
+        equipment = self.equipment_repository.get_by_id(
             equipment_id
         )
 
         if equipment is None:
-            return None
+            raise EquipmentNotFoundError(
+                "Equipo biomédico no encontrado."
+            )
 
         update_data = data.model_dump(
             exclude_unset=True
@@ -102,7 +116,7 @@ class BiomedicalEquipmentService:
 
         if "serial_number" in update_data:
             existing_equipment = (
-                self.repository.get_by_serial_number(
+                self.equipment_repository.get_by_serial_number(
                     update_data["serial_number"]
                 )
             )
@@ -111,14 +125,16 @@ class BiomedicalEquipmentService:
                 existing_equipment
                 and existing_equipment.id != equipment.id
             ):
-                raise ValueError(
+                raise EquipmentAlreadyExistsError(
                     "Ya existe otro equipo con ese número de serie."
                 )
 
         for field, value in update_data.items():
             setattr(equipment, field, value)
 
-        return self.repository.update(equipment)
+        return self.equipment_repository.update(
+            equipment
+        )
 
     def delete(
         self,
@@ -127,17 +143,33 @@ class BiomedicalEquipmentService:
         """
         Elimina un equipo.
 
-        Devuelve True si fue eliminado y False
-        si no existe.
+        Un equipo que tenga calibraciones asociadas
+        no puede ser eliminado.
+
+        Devuelve True si fue eliminado.
         """
 
-        equipment = self.repository.get_by_id(
+        equipment = self.equipment_repository.get_by_id(
             equipment_id
         )
 
         if equipment is None:
-            return False
+            raise EquipmentNotFoundError(
+                "Equipo biomédico no encontrado."
+            )
 
-        self.repository.delete(equipment)
+        calibrations = (
+            self.calibration_repository.get_by_equipment_id(
+                equipment_id
+            )
+        )
+
+        if calibrations:
+            raise EquipmentHasCalibrationsError(
+                "No se puede eliminar el equipo biomédico "
+                "porque tiene calibraciones asociadas."
+            )
+
+        self.equipment_repository.delete(equipment)
 
         return True

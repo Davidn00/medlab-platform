@@ -17,10 +17,18 @@ from app.db.session import get_db
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
 )
+from app.repositories.calibration_repository import (
+    CalibrationRepository,
+)
 from app.schemas.biomedical_equipment import (
     BiomedicalEquipmentCreate,
     BiomedicalEquipmentResponse,
     BiomedicalEquipmentUpdate,
+)
+from app.core.exceptions import (
+    EquipmentAlreadyExistsError,
+    EquipmentHasCalibrationsError,
+    EquipmentNotFoundError,
 )
 from app.services.biomedical_equipment_service import BiomedicalEquipmentService
 from app.services.calibration_service import CalibrationService
@@ -42,9 +50,13 @@ def get_equipment_service(
     utilizando la sesión de base de datos.
     """
 
-    repository = BiomedicalEquipmentRepository(db)
+    equipment_repository = BiomedicalEquipmentRepository(db)
+    calibration_repository = CalibrationRepository(db)
 
-    return BiomedicalEquipmentService(repository)
+    return BiomedicalEquipmentService(
+        equipment_repository=equipment_repository,
+        calibration_repository=calibration_repository
+    )
 
 
 @router.post(
@@ -65,7 +77,7 @@ def create_equipment(
     try:
         return service.create(data)
 
-    except ValueError as exc:
+    except EquipmentAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
@@ -134,7 +146,7 @@ def update_equipment(
             data,
         )
 
-    except ValueError as exc:
+    except EquipmentAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
@@ -163,15 +175,20 @@ def delete_equipment(
     Elimina un equipo biomédico.
     """
 
-    deleted = service.delete(equipment_id)
+    try:
+        service.delete(equipment_id)
 
-    if not deleted:
+    except EquipmentNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Equipo biomédico no encontrado.",
-        )
+        ) from exc
 
-    return None
+    except EquipmentHasCalibrationsError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="El equipo biomédico tiene calibraciones asociadas.",
+        ) from exc
 
 @router.get(
     "/{equipment_id}/calibrations",

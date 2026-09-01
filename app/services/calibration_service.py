@@ -23,6 +23,11 @@ from app.schemas.calibration import (
     CalibrationCreate,
     CalibrationUpdate,
 )
+from app.core.exceptions import (
+    CalibrationNotFoundError,
+    EquipmentNotFoundError,
+    InvalidCalibrationDatesError,
+)
 
 
 class CalibrationService:
@@ -268,7 +273,7 @@ class CalibrationService:
         """
 
         if next_calibration_date <= calibration_date:
-            raise ValueError(
+            raise InvalidCalibrationDatesError(
                 "La próxima fecha de calibración "
                 "debe ser posterior a la fecha de "
                 "calibración."
