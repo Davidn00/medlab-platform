@@ -1,3 +1,4 @@
+
 """
 Schemas Pydantic para calibraciones.
 
@@ -8,8 +9,10 @@ Proyecto: MedLab Platform
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-from typing import Literal
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.models.calibration import CalibrationStatus
+
 
 class CalibrationBase(BaseModel):
     """
@@ -44,15 +47,46 @@ class CalibrationBase(BaseModel):
         description="Número del certificado de calibración.",
     )
 
-    status: Literal[
-        "VALID",
-        "CANCELLED",
-    ] = "VALID"
+    status: CalibrationStatus = Field(
+        default=CalibrationStatus.VALID,
+        description="Estado actual de la calibración.",
+    )
 
     notes: str | None = Field(
         default=None,
         description="Observaciones relacionadas con la calibración.",
     )
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, value):
+        """
+        Permite recibir tanto el nombre del enum
+        como su valor.
+
+        Ejemplos válidos:
+            VALID
+            valid
+            EXPIRED
+            expired
+        """
+
+        if isinstance(value, CalibrationStatus):
+            return value
+
+        if isinstance(value, str):
+            normalized = value.strip().upper()
+
+            try:
+                return CalibrationStatus[normalized]
+            except KeyError:
+                pass
+
+        return value
 
 
 class CalibrationCreate(CalibrationBase):
@@ -68,17 +102,11 @@ class CalibrationUpdate(BaseModel):
     Datos permitidos para actualizar una calibración.
     """
 
-    equipment_id: UUID | None = Field(
-        default=None,
-    )
+    equipment_id: UUID | None = None
 
-    calibration_date: datetime | None = Field(
-        default=None,
-    )
+    calibration_date: datetime | None = None
 
-    next_calibration_date: datetime | None = Field(
-        default=None,
-    )
+    next_calibration_date: datetime | None = None
 
     performed_by: str | None = Field(
         default=None,
@@ -91,12 +119,37 @@ class CalibrationUpdate(BaseModel):
         max_length=100,
     )
 
-    status: Literal[
-        "VALID",
-        "CANCELLED",
-    ] | None = None
+    status: CalibrationStatus | None = None
 
     notes: str | None = None
+
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, value):
+        """
+        Permite recibir tanto el nombre del enum
+        como su valor.
+        """
+
+        if value is None:
+            return None
+
+        if isinstance(value, CalibrationStatus):
+            return value
+
+        if isinstance(value, str):
+            normalized = value.strip().upper()
+
+            try:
+                return CalibrationStatus[normalized]
+            except KeyError:
+                pass
+
+        return value
 
 
 class CalibrationResponse(CalibrationBase):
@@ -106,8 +159,10 @@ class CalibrationResponse(CalibrationBase):
     """
 
     id: UUID
+
     created_at: datetime
 
     model_config = ConfigDict(
         from_attributes=True,
     )
+

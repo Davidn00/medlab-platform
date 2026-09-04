@@ -12,6 +12,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from app.models import calibration
+from app.models.audit_log import AuditAction
+from app.models.audit_log import AuditAction
 from app.models.calibration import Calibration
 
 
@@ -143,6 +146,32 @@ class CalibrationRepository:
 
         self.db.flush()
         self.db.refresh(calibration)
+
+        return calibration
+
+    def update_status(
+        self,
+        calibration: Calibration,
+        new_status: str,
+    ) -> Calibration:
+
+        old_status = calibration.status
+
+        calibration.status = new_status
+
+        self.db.flush()
+
+        if old_status != new_status:
+            self.audit_service.log(
+                user_id=None,
+                entity_name="Calibration",
+                entity_id=str(calibration.id),
+                action=AuditAction.STATUS_CHANGED,
+                description=(
+                    f"Estado cambiado de '{old_status}' "
+                    f"a '{new_status}'"
+                ),
+            )
 
         return calibration
 

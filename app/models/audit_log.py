@@ -32,6 +32,7 @@ class AuditAction(str, Enum):
     DELETE = "delete"
     VALIDATE = "validate"
     LOGIN = "login"
+    STATUS_CHANGED = "status_changed"
 
 
 class AuditLog(Base):

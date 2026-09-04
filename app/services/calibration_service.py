@@ -16,7 +16,7 @@ from app.core.exceptions import (
     EquipmentNotFoundError,
     InvalidCalibrationDatesError,
 )
-from app.models.calibration import Calibration
+from app.models.calibration import Calibration, CalibrationStatus
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
 )
@@ -28,6 +28,9 @@ from app.schemas.calibration import (
     CalibrationUpdate,
 )
 
+from sqlalchemy.orm import Session
+from app.services.audit_service import AuditService
+from app.models.audit_log import AuditAction
 
 class CalibrationService:
     """
@@ -41,13 +44,22 @@ class CalibrationService:
         self,
         calibration_repository: CalibrationRepository,
         equipment_repository: BiomedicalEquipmentRepository,
+        db=None,
+        audit_service: AuditService | None = None,
     ):
-        self.calibration_repository = (
-            calibration_repository
+        self.calibration_repository = calibration_repository
+        self.equipment_repository = equipment_repository
+
+        self.db = (
+            db
+            if db is not None
+            else calibration_repository.db
         )
 
-        self.equipment_repository = (
-            equipment_repository
+        self.audit_service = (
+            audit_service
+            if audit_service is not None
+            else AuditService(self.db)
         )
 
     def create(
@@ -200,6 +212,7 @@ class CalibrationService:
         self,
         calibration_id: UUID,
         data: CalibrationUpdate,
+        user_id: UUID | None = None,
     ) -> Calibration | None:
         """
         Actualiza una calibración.
@@ -311,6 +324,52 @@ class CalibrationService:
             db.rollback()
             raise
 
+    def expire_calibration(
+        self,
+        calibration: Calibration,
+        user_id: UUID | None = None,
+    ) -> bool:
+        """
+        Cambia una calibración de VALID a EXPIRED
+        y registra la transición en auditoría.
+
+        La operación es idempotente y transaccional.
+
+        Devuelve True si hubo cambio.
+        Devuelve False si ya estaba EXPIRED.
+        """
+
+        if calibration.status == CalibrationStatus.EXPIRED:
+            return False
+
+        old_status = calibration.status
+
+        try:
+            self.calibration_repository.update_status(
+                calibration,
+                CalibrationStatus.EXPIRED,
+            )
+
+            self.audit_service.log(
+                user_id=user_id,
+                entity_name="Calibration",
+                entity_id=str(calibration.id),
+                action=AuditAction.STATUS_CHANGED,
+                description=(
+                    f"Estado de calibración cambiado de "
+                    f"'{old_status.value}' a "
+                    f"'{CalibrationStatus.EXPIRED.value}'."
+                ),
+            )
+
+            self.db.commit()
+
+            return True
+
+        except Exception:
+            self.db.rollback()
+            raise
+        
     @staticmethod
     def _validate_dates(
         calibration_date: datetime,

@@ -10,7 +10,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.core.exceptions import EquipmentNotFoundError
 
 from app.db.session import get_db
 from app.repositories.biomedical_equipment_repository import (

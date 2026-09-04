@@ -6,12 +6,17 @@ Proyecto: MedLab Platform
 """
 
 import logging
-from app.workers.celery_app import celery_app
 
 from app.db.session import SessionLocal
-from app.repositories.calibration_repository import CalibrationRepository
-from app.repositories.biomedical_equipment_repository import BiomedicalEquipmentRepository
+from app.repositories.biomedical_equipment_repository import (
+    BiomedicalEquipmentRepository,
+)
+from app.repositories.calibration_repository import (
+    CalibrationRepository,
+)
+from app.services.audit_service import AuditService
 from app.services.calibration_service import CalibrationService
+from app.workers.celery_app import celery_app
 
 
 logger = logging.getLogger(__name__)
@@ -41,23 +46,47 @@ def check_calibration_status(days: int = 30) -> dict:
     try:
         calibration_repository = CalibrationRepository(db)
         equipment_repository = BiomedicalEquipmentRepository(db)
+        audit_service = AuditService(db)
 
         calibration_service = CalibrationService(
             calibration_repository=calibration_repository,
             equipment_repository=equipment_repository,
+            db=db,
+            audit_service=audit_service,
         )
 
-        expired = calibration_service.get_expired_calibrations()
-        expiring = calibration_service.get_expiring_calibrations(days=days)
+        expired = (
+            calibration_service.get_expired_calibrations()
+        )
+
+        expired_count = 0
+        already_expired_count = 0
+        expired_ids = []
+
+        for calibration in expired:
+
+            changed = calibration_service.expire_calibration(
+                calibration,
+            )
+
+            if changed:
+                expired_count += 1
+                expired_ids.append(str(calibration.id))
+            else:
+                already_expired_count += 1
+
+        expiring = (
+            calibration_service.get_expiring_calibrations(
+                days=days
+            )
+        )
 
         result = {
             "status": "completed",
-            "expired_count": len(expired),
+            "newly_expired_count": expired_count,
+            "already_expired_count": already_expired_count,
             "expiring_count": len(expiring),
-            "expired_calibration_ids": [
-                str(calibration.id)
-                for calibration in expired
-            ],
+            "expired_calibration_ids": expired_ids,
             "expiring_calibration_ids": [
                 str(calibration.id)
                 for calibration in expiring
@@ -65,18 +94,19 @@ def check_calibration_status(days: int = 30) -> dict:
         }
 
         logger.info(
-            "Calibration status check completed: "
-            "expired=%s, expiring=%s",
-            result["expired_count"],
-            result["expiring_count"],
+            "Biomedical calibration check completed: %s",
+            result,
         )
 
         return result
 
     except Exception:
+        db.rollback()
+
         logger.exception(
-            "Error checking biomedical calibration status"
+            "Error processing biomedical calibrations"
         )
+
         raise
 
     finally:
