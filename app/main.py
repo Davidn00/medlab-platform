@@ -17,6 +17,7 @@ from app.api.v1.audit import router as audit_router
 from app.api.v1.tasks import router as tasks_router
 from app.api.v1.biomedical_equipment import router as biomedical_equipment_router
 from app.api.v1.calibration import router as calibration_router
+from app.api.v1.notifications import router as notifications_router
 
 # ...
 
@@ -65,3 +66,4 @@ app.include_router(audit_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(biomedical_equipment_router, prefix="/api/v1")
 app.include_router(calibration_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")

@@ -18,6 +18,10 @@ from app.services.audit_service import AuditService
 from app.services.calibration_service import CalibrationService
 from app.workers.celery_app import celery_app
 
+from app.tasks.notification_tasks import (
+    notify_calibration_expired,
+    notify_calibration_expiring,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +76,10 @@ def check_calibration_status(days: int = 30) -> dict:
             if changed:
                 expired_count += 1
                 expired_ids.append(str(calibration.id))
+
+                notify_calibration_expired.delay(
+                    str(calibration.id)
+                )
             else:
                 already_expired_count += 1
 
@@ -81,6 +89,12 @@ def check_calibration_status(days: int = 30) -> dict:
             )
         )
 
+        for calibration in expiring:
+            notify_calibration_expiring.delay(
+                str(calibration.id),
+                days,
+            )
+            
         result = {
             "status": "completed",
             "newly_expired_count": expired_count,

@@ -4,10 +4,12 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+import alembic_postgresql_enum
 
 from app.core.config import settings
 
 from app.db.base import Base
+
 from app.models.user import User
 from app.models.patient import Patient
 from app.models.sample import Sample
@@ -15,6 +17,7 @@ from app.models.laboratory_test import LaboratoryTest
 from app.models.audit_log import AuditLog
 from app.models.biomedical_equipment import BiomedicalEquipment
 from app.models.calibration import Calibration
+from app.models.notification import Notification
 
 # ---------------------------------------------------------
 # Configuración de Alembic

@@ -19,7 +19,11 @@ def test_check_calibration_status():
 
     with patch(
         "app.tasks.calibration_tasks.SessionLocal"
-    ) as session_local:
+    ) as session_local, patch(
+        "app.tasks.calibration_tasks.notify_calibration_expired"
+    ) as expired_notification, patch(
+        "app.tasks.calibration_tasks.notify_calibration_expiring"
+    ) as expiring_notification:
 
         db = session_local.return_value
 
@@ -43,6 +47,8 @@ def test_check_calibration_status():
     assert result["expiring_count"] == 1
     assert result["expired_calibration_ids"] == ["expired-1"]
     assert result["expiring_calibration_ids"] == ["expiring-1"]
+    expired_notification.delay.assert_called_once_with("expired-1")
+    expiring_notification.delay.assert_called_once_with("expiring-1", 30)
 
 def test_expire_calibration_is_idempotent():
     calibration = MagicMock()

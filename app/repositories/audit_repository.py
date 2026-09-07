@@ -1,5 +1,8 @@
 """
 Repositorio de auditoría.
+
+Autor: David
+Proyecto: MedLab Platform
 """
 
 from sqlalchemy import select
@@ -17,11 +20,16 @@ class AuditRepository:
         self,
         log: AuditLog,
     ) -> AuditLog:
+        """
+        Persiste un registro de auditoría sin confirmar
+        la transacción.
+
+        El commit pertenece al Service que controla la
+        operación de negocio.
+        """
 
         self.db.add(log)
-
-        self.db.commit()
-
+        self.db.flush()
         self.db.refresh(log)
 
         return log

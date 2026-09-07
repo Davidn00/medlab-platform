@@ -12,16 +12,11 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.models import calibration
-from app.models.audit_log import AuditAction
-from app.models.audit_log import AuditAction
 from app.models.calibration import Calibration
 
 
 class CalibrationRepository:
-    """
-    Acceso a datos de calibraciones.
-    """
+    """Acceso a datos de calibraciones."""
 
     def __init__(self, db: Session):
         self.db = db
@@ -30,44 +25,27 @@ class CalibrationRepository:
         self,
         calibration: Calibration,
     ) -> Calibration:
-        """
-        Persiste una nueva calibración.
-        """
-
         self.db.add(calibration)
         self.db.flush()
         self.db.refresh(calibration)
-
         return calibration
 
     def get_by_id(
         self,
         calibration_id: UUID,
     ) -> Calibration | None:
-        """
-        Obtiene una calibración por UUID.
-        """
-
         return (
             self.db.query(Calibration)
-            .filter(
-                Calibration.id == calibration_id
-            )
+            .filter(Calibration.id == calibration_id)
             .first()
         )
 
     def get_all(
         self,
     ) -> list[Calibration]:
-        """
-        Obtiene todas las calibraciones.
-        """
-
         return (
             self.db.query(Calibration)
-            .order_by(
-                Calibration.calibration_date.desc()
-            )
+            .order_by(Calibration.calibration_date.desc())
             .all()
         )
 
@@ -75,20 +53,10 @@ class CalibrationRepository:
         self,
         equipment_id: UUID,
     ) -> list[Calibration]:
-        """
-        Obtiene todas las calibraciones asociadas
-        a un equipo.
-        """
-
         return (
             self.db.query(Calibration)
-            .filter(
-                Calibration.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                Calibration.calibration_date.desc()
-            )
+            .filter(Calibration.equipment_id == equipment_id)
+            .order_by(Calibration.calibration_date.desc())
             .all()
         )
 
@@ -97,12 +65,6 @@ class CalibrationRepository:
         start_date: datetime,
         end_date: datetime,
     ) -> list[Calibration]:
-        """
-        Obtiene calibraciones cuya próxima fecha
-        de calibración se encuentra dentro del
-        intervalo indicado.
-        """
-
         return (
             self.db.query(Calibration)
             .filter(
@@ -110,9 +72,7 @@ class CalibrationRepository:
                 Calibration.next_calibration_date >= start_date,
                 Calibration.next_calibration_date <= end_date,
             )
-            .order_by(
-                Calibration.next_calibration_date.asc()
-            )
+            .order_by(Calibration.next_calibration_date.asc())
             .all()
         )
 
@@ -120,58 +80,40 @@ class CalibrationRepository:
         self,
         current_date: datetime,
     ) -> list[Calibration]:
-        """
-        Obtiene calibraciones cuya próxima fecha
-        de calibración ya venció.
-        """
         return (
-        self.db.query(Calibration)
-        .filter(
-            Calibration.status == "VALID",
-            Calibration.next_calibration_date < current_date,
+            self.db.query(Calibration)
+            .filter(
+                Calibration.next_calibration_date < current_date,
+            )
+            .order_by(Calibration.next_calibration_date.asc())
+            .all()
         )
-        .order_by(
-            Calibration.next_calibration_date.asc()
-        )
-        .all()
-    )
 
     def update(
         self,
         calibration: Calibration,
     ) -> Calibration:
-        """
-        Actualiza una calibración existente.
-        """
-
         self.db.flush()
         self.db.refresh(calibration)
-
         return calibration
 
     def update_status(
         self,
         calibration: Calibration,
-        new_status: str,
+        new_status,
     ) -> Calibration:
+        """
+        Actualiza únicamente el estado.
 
-        old_status = calibration.status
+        No hace commit y no genera auditoría. La auditoría
+        pertenece al Service para que estado + auditoría
+        formen una única transacción.
+        """
 
         calibration.status = new_status
 
         self.db.flush()
-
-        if old_status != new_status:
-            self.audit_service.log(
-                user_id=None,
-                entity_name="Calibration",
-                entity_id=str(calibration.id),
-                action=AuditAction.STATUS_CHANGED,
-                description=(
-                    f"Estado cambiado de '{old_status}' "
-                    f"a '{new_status}'"
-                ),
-            )
+        self.db.refresh(calibration)
 
         return calibration
 
@@ -179,9 +121,5 @@ class CalibrationRepository:
         self,
         calibration: Calibration,
     ) -> None:
-        """
-        Elimina una calibración.
-        """
-
         self.db.delete(calibration)
         self.db.flush()

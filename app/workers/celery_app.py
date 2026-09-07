@@ -34,6 +34,7 @@ celery_app.conf.update(
 # del nombre convencional tasks.py de Celery.
 import app.tasks.calibration_tasks
 import app.tasks.laboratory_tasks
+import app.tasks.notification_tasks
 import app.tasks.report_tasks
 
 celery_app.autodiscover_tasks(
