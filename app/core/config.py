@@ -11,6 +11,7 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -62,6 +63,24 @@ class Settings(BaseSettings):
     
     celery_broker_url: str = "redis://redis:6379/0"
     celery_result_backend: str = "redis://redis:6379/1"
+
+    # Política de reintentos de tareas Celery
+    celery_task_max_retries: int = Field(
+        default=5,
+        validation_alias="CELERY_TASK_MAX_RETRIES",
+    )
+    celery_task_retry_backoff: int = Field(
+        default=10,
+        validation_alias="CELERY_TASK_RETRY_BACKOFF",
+    )
+    celery_task_retry_backoff_max: int = Field(
+        default=300,
+        validation_alias="CELERY_TASK_RETRY_BACKOFF_MAX",
+    )
+    celery_task_retry_jitter: bool = Field(
+        default=True,
+        validation_alias="CELERY_TASK_RETRY_JITTER",
+    )
     
     # ======================================
     # Configuración del modelo

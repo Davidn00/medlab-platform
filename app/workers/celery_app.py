@@ -17,6 +17,9 @@ celery_app = Celery(
 # )
 
 celery_app.conf.update(
+    # ------------------------------------------------------
+    # Serialización
+    # ------------------------------------------------------
     timezone="UTC",
     enable_utc=True,
     task_serializer="json",
@@ -24,9 +27,61 @@ celery_app.conf.update(
     accept_content=["json"],
     result_expires=3600,
     task_track_started=True,
+
+    # ------------------------------------------------------
+    # Entrega segura de tareas
+    # ------------------------------------------------------
     worker_prefetch_multiplier=1,
     task_acks_late=True,
+    task_reject_on_worker_lost=True,
+
+    # ------------------------------------------------------
+    # Tolerancia ante pérdida temporal de Redis
+    # ------------------------------------------------------
+    broker_connection_retry=True,
+    broker_connection_retry_on_startup=True,
+    broker_connection_max_retries=10,
+    broker_transport_options={
+        "retry_policy": {
+            "max_retries": 10,
+            "interval_start": 0,
+            "interval_step": 2,
+            "interval_max": 10,
+        },
+    },
+    
+    # ------------------------------------------------------
+    # Reintento de publicación desde productores Celery
+    # ------------------------------------------------------
+    task_publish_retry=True,
+    task_publish_retry_policy={
+        "max_retries": 5,
+        "interval_start": 0,
+        "interval_step": 2,
+        "interval_max": 10,
+    },
+    
+    # ------------------------------------------------------
+    # Backend de resultados Redis
+    # ------------------------------------------------------
+    result_backend_transport_options={
+        "retry_policy": {
+            "max_retries": 10,
+            "interval_start": 0,
+            "interval_step": 2,
+            "interval_max": 10,
+        },
+    },
+    
+    # ------------------------------------------------------
+    # Recuperación de workers
+    # ------------------------------------------------------
+    worker_max_tasks_per_child=100,
+    task_time_limit=300,
+    task_soft_time_limit=240,
 )
+
+   
 
 # Importación explícita de las tareas del proyecto.
 #
@@ -36,10 +91,9 @@ import app.tasks.calibration_tasks
 import app.tasks.laboratory_tasks
 import app.tasks.notification_tasks
 import app.tasks.report_tasks
+import app.tasks.result_tasks
 
-celery_app.autodiscover_tasks(
-    ["app.tasks"]
-)
+celery_app.autodiscover_tasks(["app.tasks"])
 
 
 celery_app.conf.beat_schedule = {

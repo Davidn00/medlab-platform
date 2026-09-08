@@ -11,7 +11,13 @@ from uuid import UUID
 from app.db.session import SessionLocal
 from app.services.report_service import ReportService
 from app.workers.celery_app import celery_app
-
+from app.tasks.retry import (
+    TASK_RETRY_BACKOFF,
+    TASK_RETRY_BACKOFF_MAX,
+    TASK_RETRY_JITTER,
+    TASK_RETRY_KWARGS,
+    TRANSIENT_TASK_ERRORS,
+)
 
 # Directorio donde se almacenarán los reportes generados.
 REPORTS_DIR = Path("reports")
@@ -23,6 +29,12 @@ REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 @celery_app.task(
     bind=True,
     name="medlab.tasks.generate_report",
+    autoretry_for=TRANSIENT_TASK_ERRORS,
+    retry_backoff=TASK_RETRY_BACKOFF,
+    retry_backoff_max=TASK_RETRY_BACKOFF_MAX,
+    retry_jitter=TASK_RETRY_JITTER,
+    max_retries=TASK_RETRY_KWARGS["max_retries"],
+    retry_kwargs=TASK_RETRY_KWARGS,
 )
 def generate_report(
     self,

@@ -17,7 +17,13 @@ from app.repositories.calibration_repository import (
 from app.services.audit_service import AuditService
 from app.services.calibration_service import CalibrationService
 from app.workers.celery_app import celery_app
-
+from app.tasks.retry import (
+    TASK_RETRY_BACKOFF,
+    TASK_RETRY_BACKOFF_MAX,
+    TASK_RETRY_JITTER,
+    TASK_RETRY_KWARGS,
+    TRANSIENT_TASK_ERRORS,
+)
 from app.tasks.notification_tasks import (
     notify_calibration_expired,
     notify_calibration_expiring,
@@ -27,7 +33,13 @@ logger = logging.getLogger(__name__)
 
 
 @celery_app.task(
-    name="medlab.tasks.check_calibration_status"
+    name="medlab.tasks.check_calibration_status",
+    autoretry_for=TRANSIENT_TASK_ERRORS,
+    retry_backoff=TASK_RETRY_BACKOFF,
+    retry_backoff_max=TASK_RETRY_BACKOFF_MAX,
+    retry_jitter=TASK_RETRY_JITTER,
+    max_retries=TASK_RETRY_KWARGS["max_retries"],
+    retry_kwargs=TASK_RETRY_KWARGS,
 )
 def check_calibration_status(days: int = 30) -> dict:
     """
