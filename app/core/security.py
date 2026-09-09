@@ -16,6 +16,7 @@ from pwdlib import PasswordHash
 
 from app.core.config import settings
 
+import re
 
 # ==========================================================
 # Argon2
@@ -47,16 +48,21 @@ ALGORITHM = "HS256"
 
 def create_access_token(subject: str) -> str:
     """
-    Crea un token JWT para un usuario.
+    Crea un JWT firmado para un usuario.
     """
 
-    expire = datetime.now(timezone.utc) + timedelta(
+    now = datetime.now(timezone.utc)
+
+    expire = now + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
     payload = {
         "sub": subject,
+        "iat": now,
         "exp": expire,
+        "iss": settings.JWT_ISSUER,
+        "type": "access",
     }
 
     return jwt.encode(
@@ -68,11 +74,58 @@ def create_access_token(subject: str) -> str:
 
 def decode_access_token(token: str):
     """
-    Decodifica un token JWT.
+    Valida y decodifica un JWT.
     """
 
     return jwt.decode(
         token,
         settings.SECRET_KEY,
         algorithms=[ALGORITHM],
+        issuer=settings.JWT_ISSUER,
+        options={
+            "require": [
+                "sub",
+                "iat",
+                "exp",
+                "iss",
+            ]
+        },
     )
+
+def validate_password_strength(password: str) -> None:
+    """
+    Valida la fortaleza mínima de una contraseña.
+
+    Requisitos:
+
+    - mínimo 12 caracteres
+    - mayúscula
+    - minúscula
+    - número
+    - carácter especial
+    """
+
+    if len(password) < 12:
+        raise ValueError(
+            "La contraseña debe tener al menos 12 caracteres."
+        )
+
+    if not re.search(r"[A-Z]", password):
+        raise ValueError(
+            "La contraseña debe contener al menos una mayúscula."
+        )
+
+    if not re.search(r"[a-z]", password):
+        raise ValueError(
+            "La contraseña debe contener al menos una minúscula."
+        )
+
+    if not re.search(r"\d", password):
+        raise ValueError(
+            "La contraseña debe contener al menos un número."
+        )
+
+    if not re.search(r"[^A-Za-z0-9]", password):
+        raise ValueError(
+            "La contraseña debe contener al menos un carácter especial."
+        )

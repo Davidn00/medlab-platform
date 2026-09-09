@@ -56,11 +56,13 @@ class Settings(BaseSettings):
     # ======================================
     # Celery & Redis
     # ======================================
-    
+
+    REDIS_PASSWORD: str | None = None
+
     redis_host: str = "redis"
     redis_port: int = 6379
     redis_db: int = 0
-    
+
     celery_broker_url: str = "redis://redis:6379/0"
     celery_result_backend: str = "redis://redis:6379/1"
 
@@ -69,18 +71,23 @@ class Settings(BaseSettings):
         default=5,
         validation_alias="CELERY_TASK_MAX_RETRIES",
     )
+
     celery_task_retry_backoff: int = Field(
         default=10,
         validation_alias="CELERY_TASK_RETRY_BACKOFF",
     )
+
     celery_task_retry_backoff_max: int = Field(
         default=300,
         validation_alias="CELERY_TASK_RETRY_BACKOFF_MAX",
     )
+
     celery_task_retry_jitter: bool = Field(
         default=True,
         validation_alias="CELERY_TASK_RETRY_JITTER",
     )
+
+
     
     # ======================================
     # Configuración del modelo
@@ -92,8 +99,28 @@ class Settings(BaseSettings):
         case_sensitive=True,
         extra="ignore"  # Ignora variables no definidas en la clase
     )
-    
+
+    # ======================================
+    # Seguridad avanzada
+    # ======================================
+
+    JWT_ISSUER: str = "medlab-platform"
+
+    CORS_ORIGINS: str = ""
+
+    ALLOWED_HOSTS: str = (
+        "localhost,127.0.0.1"
+    )
+
+    ENABLE_DOCS: bool = True
+
+    LOGIN_RATE_LIMIT: int = 5
+
+    LOGIN_RATE_WINDOW_SECONDS: int = 60
+
     reports_dir: str = "/app/reports"
+
+
 
 
 # Creamos una única instancia de configuración.

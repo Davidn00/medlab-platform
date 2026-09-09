@@ -14,6 +14,10 @@ from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
 
+from app.core.security import (
+    hash_password,
+    validate_password_strength,
+)
 
 class UserService:
     """
@@ -40,6 +44,8 @@ class UserService:
         if existing:
             raise ValueError("Ya existe un usuario con ese email")
 
+        validate_password_strength(user_data.password)
+        
         user = User(
             full_name=user_data.full_name,
             email=user_data.email,

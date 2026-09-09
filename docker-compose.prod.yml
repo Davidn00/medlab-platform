@@ -1,0 +1,189 @@
+services:
+
+  postgres:
+    image: postgres:17
+
+    container_name: medlab_postgres_prod
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    restart: unless-stopped
+
+
+  redis:
+    image: redis:7-alpine
+
+    container_name: medlab_redis_prod
+
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD}"
+      ]
+
+    volumes:
+      - redis_prod_data:/data
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "-a",
+          "${REDIS_PASSWORD}",
+          "ping"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+    restart: unless-stopped
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+
+    container_name: medlab_api_prod
+
+    env_file:
+      - .env.production
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - reports_prod_data:/app/reports
+
+    command:
+      [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+      ]
+
+    restart: unless-stopped
+
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+
+    container_name: medlab_celery_worker_prod
+
+    env_file:
+      - .env.production
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+    volumes:
+      - reports_prod_data:/app/reports
+
+    command:
+      [
+        "celery",
+        "-A",
+        "app.workers.celery_app.celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "--concurrency=4"
+      ]
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os; os.kill(1, 0)\""
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    restart: unless-stopped
+    
+
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+
+    container_name: medlab_celery_beat_prod
+
+    env_file:
+      - .env.production
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+      postgres:
+        condition: service_healthy
+
+    command:
+      [
+        "celery",
+        "-A",
+        "app.workers.celery_app.celery_app",
+        "beat",
+        "--loglevel=INFO"
+      ]
+      
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import os; os.kill(1, 0)\""
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+    restart: unless-stopped
+    
+
+
+volumes:
+
+  postgres_prod_data:
+
+  redis_prod_data:
+
+  reports_prod_data:

@@ -8,7 +8,7 @@ def test_create_patient_invalid_email(client):
         "/api/v1/auth/login",
         data={
             "username": "admin@medlab.com",
-            "password": "admin123",
+            "password": "Admin123!SecurePassword",
         },
     )
 
@@ -45,7 +45,7 @@ def test_create_patient_missing_required_fields(client):
         "/api/v1/auth/login",
         data={
             "username": "admin@medlab.com",
-            "password": "admin123",
+            "password": "Admin123!SecurePassword",
         },
     )
     assert login_response.status_code == 200

@@ -3,6 +3,11 @@ from celery import Celery
 from app.core.config import settings
 from celery.schedules import crontab
 
+import logging
+from celery.signals import task_failure, task_postrun, task_prerun
+
+logger = logging.getLogger("medlab.celery")
+
 
 celery_app = Celery(
     "medlab",
@@ -103,3 +108,46 @@ celery_app.conf.beat_schedule = {
         "args": (30,),
     },
 }
+
+@task_prerun.connect
+def celery_task_started(
+    task_id=None,
+    task=None,
+    **kwargs,
+):
+    logger.info(
+        "Celery task started | task=%s task_id=%s",
+        task.name if task else "unknown",
+        task_id,
+    )
+
+
+@task_postrun.connect
+def celery_task_finished(
+    task_id=None,
+    task=None,
+    retval=None,
+    state=None,
+    **kwargs,
+):
+    logger.info(
+        "Celery task finished | task=%s task_id=%s state=%s",
+        task.name if task else "unknown",
+        task_id,
+        state,
+    )
+
+
+@task_failure.connect
+def celery_task_failed(
+    task_id=None,
+    exception=None,
+    sender=None,
+    **kwargs,
+):
+    logger.error(
+        "Celery task failed | task=%s task_id=%s error=%s",
+        sender.name if sender else "unknown",
+        task_id,
+        exception,
+    )

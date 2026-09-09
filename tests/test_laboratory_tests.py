@@ -14,7 +14,7 @@ def login_as_admin(client):
         "/api/v1/auth/login",
         data={
             "username": "admin@medlab.com",
-            "password": "admin123",
+            "password": "Admin123!SecurePassword",
         },
     )
 

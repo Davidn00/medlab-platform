@@ -12,6 +12,7 @@ venv
 env
 
 .env
+.env.*
 
 .gitignore
 .dockerignore
@@ -22,3 +23,11 @@ env
 .vscode
 
 tests
+
+*.zip
+*.rar
+
+documentation.docx
+medlab_backup.sql
+
+reports/*.pdf
