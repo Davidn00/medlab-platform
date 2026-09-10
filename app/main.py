@@ -28,6 +28,7 @@ from app.api.v1.calibration import router as calibration_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.health import router as health_router
 from app.api.v1.metrics import router as metrics_router
+from app.api.v2.router import router as api_v2_router
 
 
 # Configurar logging
@@ -160,4 +161,6 @@ app.include_router(
 app.include_router(
     metrics_router,
 )
-
+app.include_router(
+    api_v2_router,
+)
