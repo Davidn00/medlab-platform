@@ -59,12 +59,30 @@ class Settings(BaseSettings):
 
     REDIS_PASSWORD: str | None = None
 
-    redis_host: str = "redis"
-    redis_port: int = 6379
-    redis_db: int = 0
+    redis_host: str = Field(
+        default="redis",
+        validation_alias="REDIS_HOST",
+    )
 
-    celery_broker_url: str = "redis://redis:6379/0"
-    celery_result_backend: str = "redis://redis:6379/1"
+    redis_port: int = Field(
+        default=6379,
+        validation_alias="REDIS_PORT",
+    )
+
+    redis_db: int = Field(
+        default=0,
+        validation_alias="REDIS_DB",
+    )
+
+    celery_broker_url: str = Field(
+        default="redis://redis:6379/0",
+        validation_alias="CELERY_BROKER_URL",
+    )
+
+    celery_result_backend: str = Field(
+        default="redis://redis:6379/1",
+        validation_alias="CELERY_RESULT_BACKEND",
+    )
 
     # Política de reintentos de tareas Celery
     celery_task_max_retries: int = Field(
