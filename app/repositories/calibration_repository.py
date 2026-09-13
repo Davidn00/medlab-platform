@@ -123,3 +123,105 @@ class CalibrationRepository:
     ) -> None:
         self.db.delete(calibration)
         self.db.flush()
+
+    def search_paginated(
+        self,
+        *,
+        page: int,
+        limit: int,
+        status=None,
+        equipment_id: UUID | None = None,
+        search: str | None = None,
+        calibration_from=None,
+        calibration_to=None,
+        next_calibration_from=None,
+        next_calibration_to=None,
+        sort_by: str = "calibration_date",
+        sort_order: str = "desc",
+    ) -> tuple[list[Calibration], int]:
+        """
+        Busca calibraciones aplicando filtros,
+        rangos de fechas, sorting y paginación.
+        """
+
+        query = self.db.query(
+            Calibration
+        )
+
+        if status:
+            query = query.filter(
+                Calibration.status == status
+            )
+
+        if equipment_id:
+            query = query.filter(
+                Calibration.equipment_id
+                == equipment_id
+            )
+
+        if search:
+            query = query.filter(
+                Calibration.performed_by.ilike(
+                    f"%{search.strip()}%"
+                )
+            )
+
+        if calibration_from:
+            query = query.filter(
+                Calibration.calibration_date
+                >= calibration_from
+            )
+
+        if calibration_to:
+            query = query.filter(
+                Calibration.calibration_date
+                <= calibration_to
+            )
+
+        if next_calibration_from:
+            query = query.filter(
+                Calibration.next_calibration_date
+                >= next_calibration_from
+            )
+
+        if next_calibration_to:
+            query = query.filter(
+                Calibration.next_calibration_date
+                <= next_calibration_to
+            )
+
+        columns = {
+            "calibration_date":
+                Calibration.calibration_date,
+            "next_calibration_date":
+                Calibration.next_calibration_date,
+            "created_at":
+                Calibration.created_at,
+            "status":
+                Calibration.status,
+        }
+
+        column = columns[sort_by]
+
+        ordering = (
+            column.asc()
+            if sort_order == "asc"
+            else column.desc()
+        )
+
+        total = query.count()
+
+        items = (
+            query
+            .order_by(
+                ordering,
+                Calibration.id,
+            )
+            .offset(
+                (page - 1) * limit
+            )
+            .limit(limit)
+            .all()
+        )
+
+        return items, total

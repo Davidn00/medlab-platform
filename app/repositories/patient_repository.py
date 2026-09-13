@@ -7,7 +7,11 @@ con la persistencia de pacientes en PostgreSQL.
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import (
+    func,
+    or_,
+    select,
+)
 from sqlalchemy.orm import Session
 
 from app.models.patient import Patient
@@ -103,3 +107,99 @@ class PatientRepository:
         self.db.delete(patient)
 
         self.db.commit()
+
+    def search_paginated(
+        self,
+        *,
+        page: int,
+        limit: int,
+        search: str | None = None,
+        gender: str | None = None,
+        birth_date_from=None,
+        birth_date_to=None,
+        sort_by: str = "created_at",
+        sort_order: str = "desc",
+    ) -> tuple[list[Patient], int]:
+        """
+        Busca pacientes aplicando filtros,
+        búsqueda, ordenamiento y paginación.
+        """
+
+        filters = []
+
+        if search:
+            pattern = f"%{search.strip()}%"
+
+            filters.append(
+                or_(
+                    Patient.first_name.ilike(pattern),
+                    Patient.last_name.ilike(pattern),
+                    Patient.medical_record.ilike(pattern),
+                    Patient.email.ilike(pattern),
+                )
+            )
+
+        if gender:
+            filters.append(
+                Patient.gender == gender
+            )
+
+        if birth_date_from:
+            filters.append(
+                Patient.birth_date >= birth_date_from
+            )
+
+        if birth_date_to:
+            filters.append(
+                Patient.birth_date <= birth_date_to
+            )
+
+        columns = {
+            "created_at": Patient.created_at,
+            "updated_at": Patient.updated_at,
+            "first_name": Patient.first_name,
+            "last_name": Patient.last_name,
+            "birth_date": Patient.birth_date,
+        }
+
+        column = columns[sort_by]
+
+        ordering = (
+            column.asc()
+            if sort_order == "asc"
+            else column.desc()
+        )
+
+        base = (
+            select(Patient)
+            .where(*filters)
+        )
+
+        count_statement = (
+            select(func.count())
+            .select_from(Patient)
+            .where(*filters)
+        )
+
+        total = int(
+            self.db.scalar(
+                count_statement
+            )
+            or 0
+        )
+
+        items = list(
+            self.db.scalars(
+                base
+                .order_by(
+                    ordering,
+                    Patient.id,
+                )
+                .offset(
+                    (page - 1) * limit
+                )
+                .limit(limit)
+            ).all()
+        )
+
+        return items, total

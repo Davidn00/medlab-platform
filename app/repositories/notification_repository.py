@@ -130,3 +130,76 @@ class NotificationRepository:
         self.db.refresh(notification)
 
         return notification
+
+    def search_paginated(
+        self,
+        *,
+        user_id: UUID,
+        page: int,
+        limit: int,
+        unread_only: bool = False,
+        created_from=None,
+        created_to=None,
+        sort_order: str = "desc",
+    ) -> tuple[list[Notification], int]:
+        """
+        Obtiene las notificaciones del usuario
+        aplicando paginación y filtros.
+        """
+
+        filters = [
+            Notification.user_id == user_id
+        ]
+
+        if unread_only:
+            filters.append(
+                Notification.is_read.is_(False)
+            )
+
+        if created_from:
+            filters.append(
+                Notification.created_at
+                >= created_from
+            )
+
+        if created_to:
+            filters.append(
+                Notification.created_at
+                <= created_to
+            )
+
+        count_statement = (
+            select(func.count())
+            .select_from(Notification)
+            .where(*filters)
+        )
+
+        total = int(
+            self.db.scalar(
+                count_statement
+            )
+            or 0
+        )
+
+        ordering = (
+            Notification.created_at.asc()
+            if sort_order == "asc"
+            else Notification.created_at.desc()
+        )
+
+        items = list(
+            self.db.scalars(
+                select(Notification)
+                .where(*filters)
+                .order_by(
+                    ordering,
+                    Notification.id,
+                )
+                .offset(
+                    (page - 1) * limit
+                )
+                .limit(limit)
+            ).all()
+        )
+
+        return items, total

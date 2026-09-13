@@ -1,15 +1,46 @@
 """
 Router principal de la API v2.
-
-La API v2 se introduce de forma independiente
-para mantener compatibilidad con la API v1.
 """
 
 from fastapi import APIRouter
 
+from app.api.v2 import (
+    calibrations,
+    equipment,
+    laboratory_tests,
+    notifications,
+    patients,
+    samples,
+)
+
 
 router = APIRouter(
     prefix="/api/v2",
+)
+
+
+router.include_router(
+    patients.router,
+)
+
+router.include_router(
+    samples.router,
+)
+
+router.include_router(
+    laboratory_tests.router,
+)
+
+router.include_router(
+    equipment.router,
+)
+
+router.include_router(
+    calibrations.router,
+)
+
+router.include_router(
+    notifications.router,
 )
 
 
@@ -18,11 +49,8 @@ router = APIRouter(
     tags=["API"],
 )
 def api_version():
-    """
-    Devuelve información sobre la versión de la API.
-    """
-
     return {
         "api_version": "v2",
         "status": "available",
     }
+

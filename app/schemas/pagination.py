@@ -40,15 +40,24 @@ class PaginationParams(BaseModel):
 
 class PaginatedResponse(BaseModel, Generic[T]):
     """
-    Respuesta genérica paginada.
+    Respuesta estándar para endpoints paginados.
     """
 
     items: list[T]
 
-    page: int
+    page: int = Field(
+        ge=1,
+    )
 
-    limit: int
+    limit: int = Field(
+        ge=1,
+        le=100,
+    )
 
-    total: int
+    total: int = Field(
+        ge=0,
+    )
 
-    pages: int
+    pages: int = Field(
+        ge=0,
+    )
