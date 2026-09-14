@@ -42,7 +42,23 @@ from app.schemas.calibration import (
 from app.schemas.pagination import (
     PaginatedResponse,
 )
+from fastapi import HTTPException
 
+from app.core.exceptions import (
+    EquipmentNotFoundError,
+)
+
+from app.repositories.biomedical_equipment_repository import (
+    BiomedicalEquipmentRepository,
+)
+
+from app.schemas.calibration_history import (
+    CalibrationHistoryResponse,
+)
+
+from app.services.calibration_history_service import (
+    CalibrationHistoryService,
+)
 
 router = APIRouter(
     prefix="/calibrations",
@@ -131,3 +147,42 @@ def list_calibrations_v2(
         ),
     }
 
+@router.get(
+    "/equipment/{equipment_id}/history",
+    response_model=CalibrationHistoryResponse,
+)
+def get_calibration_history(
+    equipment_id: UUID,
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """
+    Obtiene el historial completo de calibraciones
+    de un equipo junto con sus métricas.
+    """
+
+    equipment_repository = BiomedicalEquipmentRepository(db)
+
+    calibration_repository = CalibrationRepository(db)
+
+    service = CalibrationHistoryService(
+        equipment_repository=equipment_repository,
+        calibration_repository=calibration_repository,
+    )
+
+    try:
+        history = service.get_history(
+            equipment_id
+        )
+
+        return CalibrationHistoryResponse(
+            equipment_id=history["equipment_id"],
+            calibrations=history["calibrations"],
+            metrics=history["metrics"],
+        )
+
+    except EquipmentNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc

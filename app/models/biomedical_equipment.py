@@ -7,12 +7,25 @@ Proyecto: MedLab Platform
 
 import uuid
 from datetime import datetime, timezone
+from enum import Enum
 
 from sqlalchemy import DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+
+class EquipmentStatus(str, Enum):
+    """
+    Estados posibles durante el ciclo de vida
+    de un equipo biomédico.
+    """
+
+    ACTIVE = "ACTIVE"
+    MAINTENANCE = "MAINTENANCE"
+    OUT_OF_SERVICE = "OUT_OF_SERVICE"
+    RETIRED = "RETIRED"
 
 
 class BiomedicalEquipment(Base):
@@ -51,10 +64,10 @@ class BiomedicalEquipment(Base):
         nullable=False,
     )
 
-    status: Mapped[str] = mapped_column(
+    status: Mapped[EquipmentStatus] = mapped_column(
         String(30),
         nullable=False,
-        default="ACTIVE",
+        default=EquipmentStatus.ACTIVE,
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -72,6 +85,24 @@ class BiomedicalEquipment(Base):
 
     calibrations = relationship(
         "Calibration",
+        back_populates="equipment",
+        cascade="all, delete-orphan",
+    )
+
+    maintenance_records = relationship(
+        "MaintenanceRecord",
+        back_populates="equipment",
+        cascade="all, delete-orphan",
+    )
+
+    maintenance_schedules = relationship(
+        "MaintenanceSchedule",
+        back_populates="equipment",
+        cascade="all, delete-orphan",
+    )
+
+    lifecycle_events = relationship(
+        "EquipmentLifecycleEvent",
         back_populates="equipment",
         cascade="all, delete-orphan",
     )

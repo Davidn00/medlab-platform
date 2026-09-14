@@ -3,11 +3,12 @@ Router principal de la API v2.
 """
 
 from fastapi import APIRouter
-
 from app.api.v2 import (
     calibrations,
     equipment,
     laboratory_tests,
+    lifecycle,
+    maintenance,
     notifications,
     patients,
     samples,
@@ -42,7 +43,12 @@ router.include_router(
 router.include_router(
     notifications.router,
 )
-
+router.include_router(
+    lifecycle.router,
+)
+router.include_router(
+    maintenance.router,
+)
 
 @router.get(
     "/version",

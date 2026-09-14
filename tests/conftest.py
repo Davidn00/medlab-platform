@@ -9,9 +9,15 @@ from sqlalchemy.orm import Session
 
 from app.main import app
 from app.db.session import SessionLocal
+
 from app.models.user import User, UserRole
 from app.models.biomedical_equipment import BiomedicalEquipment
 from app.models.calibration import Calibration
+from app.models.equipment_lifecycle_event import EquipmentLifecycleEvent
+from app.models.maintenance import Maintenance
+from app.models.maintenance_record import MaintenanceRecord
+from app.models.maintenance_schedule import MaintenanceSchedule
+
 from app.core.security import hash_password
 
 
@@ -48,6 +54,60 @@ def clean_test_data():
             )
         ]
 
+        if equipment_ids:
+            db.query(
+                EquipmentLifecycleEvent
+            ).filter(
+                EquipmentLifecycleEvent.equipment_id.in_(
+                    equipment_ids
+                )
+            ).delete(
+                synchronize_session=False
+            )
+
+            maintenance_ids = [
+                maintenance_id
+                for (maintenance_id,) in (
+                    db.query(Maintenance.id)
+                    .filter(
+                        Maintenance.equipment_id.in_(
+                            equipment_ids
+                        )
+                    )
+                    .all()
+                )
+            ]
+
+            if maintenance_ids:
+                db.query(
+                    MaintenanceRecord
+                ).filter(
+                    MaintenanceRecord.maintenance_id.in_(
+                        maintenance_ids
+                    )
+                ).delete(
+                    synchronize_session=False
+                )
+
+            db.query(
+                MaintenanceSchedule
+            ).filter(
+                MaintenanceSchedule.equipment_id.in_(
+                    equipment_ids
+                )
+            ).delete(
+                synchronize_session=False
+            )
+
+            db.query(
+                Maintenance
+            ).filter(
+                Maintenance.equipment_id.in_(
+                    equipment_ids
+                )
+            ).delete(
+                synchronize_session=False
+            )
         # --------------------------------------------------
         # Eliminar calibraciones de los equipos de prueba
         # --------------------------------------------------

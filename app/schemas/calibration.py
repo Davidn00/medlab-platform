@@ -9,7 +9,13 @@ Proyecto: MedLab Platform
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_serializer,
+    field_validator,
+)
 
 from app.models.calibration import CalibrationStatus
 
@@ -166,3 +172,29 @@ class CalibrationResponse(CalibrationBase):
         from_attributes=True,
     )
 
+    @field_serializer(
+        "calibration_date",
+        "next_calibration_date",
+        "created_at",
+    )
+    def serialize_datetime(
+        self,
+        value: datetime,
+    ) -> str:
+        """
+        Serializa las fechas utilizando el formato ISO-8601
+        con offset explícito.
+
+        Ejemplo:
+
+            2026-01-01T10:00:00+00:00
+
+        En lugar de:
+
+            2026-01-01T10:00:00Z
+
+        Esto mantiene consistente la representación utilizada
+        por los schemas de respuesta de la API.
+        """
+
+        return value.isoformat()

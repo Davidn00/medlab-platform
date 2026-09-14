@@ -18,6 +18,10 @@ from app.models.audit_log import AuditLog
 from app.models.biomedical_equipment import BiomedicalEquipment
 from app.models.calibration import Calibration
 from app.models.notification import Notification
+from app.models.equipment_lifecycle_event import EquipmentLifecycleEvent
+from app.models.maintenance import Maintenance
+from app.models.maintenance_record import MaintenanceRecord
+from app.models.maintenance_schedule import MaintenanceSchedule
 
 # ---------------------------------------------------------
 # Configuración de Alembic

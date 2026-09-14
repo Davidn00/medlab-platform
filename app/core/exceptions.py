@@ -36,3 +36,10 @@ class CalibrationNotFoundError(MedLabDomainError):
 
 class InvalidCalibrationDatesError(MedLabDomainError):
     """Las fechas de calibración no son válidas."""
+
+class InvalidEquipmentStatusTransitionError(
+    MedLabDomainError
+):
+    """
+    La transición de estado del equipo no está permitida.
+    """

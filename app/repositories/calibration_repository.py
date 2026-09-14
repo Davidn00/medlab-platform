@@ -225,3 +225,37 @@ class CalibrationRepository:
         )
 
         return items, total
+    
+    def get_last_by_equipment_id(
+        self,
+        equipment_id: UUID,
+    ) -> Calibration | None:
+
+        return (
+            self.db.query(Calibration)
+            .filter(
+                Calibration.equipment_id
+                == equipment_id
+            )
+            .order_by(
+                Calibration.calibration_date.desc()
+            )
+            .first()
+        )
+    
+    def get_next_by_equipment_id(
+        self,
+        equipment_id: UUID,
+    ) -> Calibration | None:
+
+        return (
+            self.db.query(Calibration)
+            .filter(
+                Calibration.equipment_id
+                == equipment_id
+            )
+            .order_by(
+                Calibration.next_calibration_date.asc()
+            )
+            .first()
+        )
