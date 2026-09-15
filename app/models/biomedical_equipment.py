@@ -88,6 +88,11 @@ class BiomedicalEquipment(Base):
         back_populates="equipment",
         cascade="all, delete-orphan",
     )
+    
+    laboratory_tests = relationship(
+        "LaboratoryTest",
+        back_populates="equipment",
+    )
 
     maintenance_records = relationship(
         "MaintenanceRecord",

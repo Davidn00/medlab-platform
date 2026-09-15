@@ -17,11 +17,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.sample import Sample
+from app.models.biomedical_equipment import BiomedicalEquipment
 
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
-
 
 class LabTestStatus(str, Enum):
     """
@@ -59,6 +59,20 @@ class LaboratoryTest(Base):
     )
 
     # ------------------------------------------------------
+    # Equipo biomédico utilizado
+    # ------------------------------------------------------
+
+    equipment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey(
+            "biomedical_equipment.id",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
+        index=True,
+    )
+
+    # ------------------------------------------------------
     # Información de la prueba
     # ------------------------------------------------------
 
@@ -88,7 +102,10 @@ class LaboratoryTest(Base):
     )
 
     status: Mapped[LabTestStatus] = mapped_column(
-        SQLEnum(LabTestStatus, name="test_status"),
+        SQLEnum(
+            LabTestStatus,
+            name="test_status",
+        ),
         default=LabTestStatus.PENDING,
         nullable=False,
     )
@@ -109,7 +126,13 @@ class LaboratoryTest(Base):
     # ------------------------------------------------------
     # Relaciones
     # ------------------------------------------------------
+
     sample: Mapped["Sample"] = relationship(
-    back_populates="laboratory_tests"
+        "Sample",
+        back_populates="laboratory_tests",
     )
-   
+
+    equipment: Mapped["BiomedicalEquipment | None"] = relationship(
+        "BiomedicalEquipment",
+        back_populates="laboratory_tests",
+    )

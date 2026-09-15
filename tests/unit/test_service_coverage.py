@@ -72,10 +72,12 @@ def test_report_service_generates_pdf_with_and_without_result_values():
         medical_record="MR-001",
         birth_date=datetime(1990, 5, 10).date(),
         gender="F",
+        email="ana.garcia@example.com",
     )
 
     tests = [
         SimpleNamespace(
+             id="test-1",
             test_name="Hemoglobina",
             result_value="13.5",
             unit="g/dL",
@@ -83,8 +85,10 @@ def test_report_service_generates_pdf_with_and_without_result_values():
             status=SimpleNamespace(
                 value="completed"
             ),
+            equipment=None,
         ),
         SimpleNamespace(
+            id="test-2",
             test_name="Observación",
             result_value=None,
             unit=None,
@@ -92,10 +96,12 @@ def test_report_service_generates_pdf_with_and_without_result_values():
             status=SimpleNamespace(
                 value="pending"
             ),
+            equipment=None,
         ),
     ]
 
     sample = SimpleNamespace(
+        id="sample-1",
         patient=patient,
         laboratory_tests=tests,
         sample_code="S-001",
@@ -113,6 +119,15 @@ def test_report_service_generates_pdf_with_and_without_result_values():
             30,
             tzinfo=timezone.utc,
         ),
+        received_at=datetime(
+            2026,
+            1,
+            20,
+            13,
+            0,
+            tzinfo=timezone.utc,
+        ),
+        equipment=None,
     )
 
     repository = MagicMock()

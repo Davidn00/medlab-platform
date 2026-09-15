@@ -58,3 +58,4 @@ celery>=5.4,<6.0
 prometheus-client>=0.20,<1
 ruff>=0.12,<1
 bandit>=1.8,<2
+openpyxl>=3.1,<4

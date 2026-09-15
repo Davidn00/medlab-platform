@@ -16,7 +16,7 @@ class LaboratoryTestBase(BaseModel):
     """
 
     sample_id: UUID
-
+    equipment_id: UUID | None = None
     test_name: str = Field(
         ...,
         min_length=2,

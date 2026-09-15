@@ -46,3 +46,28 @@ class AuditRepository:
         )
 
         return list(self.db.scalars(statement).all())
+
+    def get_by_entity(
+        self,
+        entity_name: str,
+        entity_id: str,
+    ) -> list[AuditLog]:
+        """
+        Obtiene todos los eventos de auditoría asociados
+        a una entidad específica.
+        """
+
+        statement = (
+            select(AuditLog)
+            .where(
+                AuditLog.entity_name == entity_name,
+                AuditLog.entity_id == entity_id,
+            )
+            .order_by(
+                AuditLog.created_at.asc()
+            )
+        )
+
+        return list(
+            self.db.scalars(statement).all()
+        )

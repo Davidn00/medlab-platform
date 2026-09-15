@@ -44,6 +44,7 @@ class LaboratoryTestService:
 
         test = LaboratoryTest(
             sample_id=test_data.sample_id,
+            equipment_id=test_data.equipment_id,
             test_name=test_data.test_name,
             unit=test_data.unit,
             reference_range=test_data.reference_range,
