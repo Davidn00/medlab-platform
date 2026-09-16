@@ -38,7 +38,7 @@ services:
 
     healthCheckPath: /health/live
 
-    maxShutdownDelaySeconds: 60
+    #maxShutdownDelaySeconds: 60
 
     autoDeployTrigger: checksPass
 
