@@ -3,7 +3,9 @@ Rate limiting basado en Redis.
 """
 
 import logging
+
 from redis import Redis
+
 from app.core.config import settings
 
 logger = logging.getLogger("medlab.security")
