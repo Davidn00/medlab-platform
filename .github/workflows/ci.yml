@@ -191,15 +191,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set image name
-        id: image
-        run: |
-          IMAGE="ghcr.io/davidn00/medlab-platform"
-
-          echo "name=${IMAGE}" >> "${GITHUB_OUTPUT}"
-
-          echo "Docker image: ${IMAGE}"
-          
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3.5.0
         with:
@@ -214,5 +205,5 @@ jobs:
           file: ./Dockerfile.prod
           push: true
           tags: |
-            ${{ steps.image.outputs.name }}:${{ github.sha }}
-            ${{ steps.image.outputs.name }}:latest
+            ghcr.io/davidn00/medlab-platform:${{ github.sha }}
+            ghcr.io/davidn00/medlab-platform:latest
