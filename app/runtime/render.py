@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import signal
-import subprocess
+import subprocess  # nosec B404 - commands are static and shell execution is disabled
 import sys
 import time
 from pathlib import Path
@@ -81,7 +81,7 @@ def main() -> None:
             "uvicorn",
             "app.main:app",
             "--host",
-            "0.0.0.0",
+            os.getenv("HOST", "0.0.0.0"),  # nosec B104 - required for Render container networking
             "--port",
             port,
         ],
@@ -108,7 +108,9 @@ def main() -> None:
 
     try:
         for command in commands:
-            processes.append(subprocess.Popen(command))
+            processes.append(
+                subprocess.Popen(command)  # nosec B603 - static command lists, shell=False
+            )
 
         while True:
             for process in processes:
