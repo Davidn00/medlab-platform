@@ -191,6 +191,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Verify Docker image name
+        run: |
+          echo "Repository: ${GITHUB_REPOSITORY}"
+          echo "Commit: ${GITHUB_SHA}"
+          echo "IMAGE: ghcr.io/davidn00/medlab-platform"
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3.5.0
         with:
@@ -198,20 +204,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=sha
-            type=raw,value=latest
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v6.18.0
         with:
           context: .
           file: ./Dockerfile.prod
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ghcr.io/davidn00/medlab-platform:${{ github.sha }}
+            ghcr.io/davidn00/medlab-platform:latest
