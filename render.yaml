@@ -30,11 +30,7 @@ services:
     dockerfilePath: ./Dockerfile.prod
     dockerContext: .
 
-    dockerCommand: >
-      sh -c
-      "alembic upgrade head &&
-      python -m app.seed &&
-      python -m app.runtime.render"
+    dockerCommand: /bin/sh -c 'alembic upgrade head && python -m app.seed && python -m app.runtime.render'
 
     healthCheckPath: /health/live
 
