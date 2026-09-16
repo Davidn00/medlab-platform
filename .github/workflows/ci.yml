@@ -194,8 +194,7 @@ jobs:
       - name: Set image name
         id: image
         run: |
-          OWNER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${OWNER}/medlab-platform"
+          IMAGE="ghcr.io/davidn00/medlab-platform"
 
           echo "name=${IMAGE}" >> "${GITHUB_OUTPUT}"
 
