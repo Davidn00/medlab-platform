@@ -140,7 +140,35 @@ jobs:
       - name: Run migrations
         run: |
           alembic upgrade head
+      
+      - name: Start Celery worker
+        run: |
+          celery -A app.workers.celery_app.celery_app worker \
+            --loglevel=warning \
+            --pool=solo \
+            > celery.log 2>&1 &
 
+          echo $! > celery.pid
+
+          echo "Waiting for Celery worker..."
+
+          for i in {1..15}; do
+            if celery -A app.workers.celery_app.celery_app inspect ping --timeout=2 2>/dev/null | grep -q "pong"; then
+              echo "Celery worker is ready."
+              break
+            fi
+
+            echo "Celery worker not ready yet. Attempt $i/15..."
+            sleep 2
+          done
+
+          if ! celery -A app.workers.celery_app.celery_app inspect ping --timeout=2 2>/dev/null | grep -q "pong"; then
+            echo "Celery worker failed to start."
+            echo "===== Celery log ====="
+            cat celery.log
+            exit 1
+          fi
+    
       - name: Run tests
         run: |
           pytest
