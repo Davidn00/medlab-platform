@@ -51,6 +51,13 @@ COPY --from=builder /install /usr/local
 COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini .
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+# ----------------------------------------------------------
+# Permisos del entrypoint
+# ----------------------------------------------------------
+
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # ----------------------------------------------------------
 # Reports
@@ -77,11 +84,11 @@ HEALTHCHECK \
     --start-period=30s \
     --retries=3 \
     CMD python -c \
-    "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"
+    "import os, urllib.request; port=os.getenv('PORT', '8000'); urllib.request.urlopen(f'http://127.0.0.1:{port}/health/live')"
 
 
 # ----------------------------------------------------------
 # API
 # ----------------------------------------------------------
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
