@@ -10,6 +10,7 @@ from app.core.config import settings
 
 logger = logging.getLogger("medlab.security")
 
+
 def get_redis_client() -> Redis:
     if settings.redis_url:
         return Redis.from_url(
@@ -27,6 +28,7 @@ def get_redis_client() -> Redis:
         socket_connect_timeout=2,
         socket_timeout=2,
     )
+
 
 def check_login_rate_limit(identifier: str) -> bool:
     """

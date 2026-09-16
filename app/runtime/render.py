@@ -108,9 +108,7 @@ def main() -> None:
 
     try:
         for command in commands:
-            processes.append(
-                subprocess.Popen(command)
-            )
+            processes.append(subprocess.Popen(command))
 
         while True:
             for process in processes:

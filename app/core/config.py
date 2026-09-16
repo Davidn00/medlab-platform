@@ -142,8 +142,7 @@ class Settings(BaseSettings):
         validation_alias="REPORTS_DIR",
     )
 
-# Creamos una única instancia de configuración.
-#
-# Todo el proyecto importará este mismo objeto.
+
+# Creamos una única instancia de configuración. Todo el proyecto importará este mismo objeto.
 
 settings = Settings()
