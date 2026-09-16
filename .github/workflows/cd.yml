@@ -1,3 +1,4 @@
+
 name: MedLab Platform CD
 
 on:
@@ -22,7 +23,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -30,13 +30,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
-
+          images: ghcr.io/davidn00/medlab-platform
 
       - name: Build and push production image
         uses: docker/build-push-action@v6
@@ -45,6 +43,7 @@ jobs:
           file: Dockerfile.prod
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/davidn00/medlab-platform:${{ github.sha }}
+            ghcr.io/davidn00/medlab-platform:latest
           labels: ${{ steps.meta.outputs.labels }}
+
