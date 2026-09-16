@@ -3,15 +3,19 @@ Rate limiting basado en Redis.
 """
 
 import logging
-
 from redis import Redis
-
 from app.core.config import settings
 
 logger = logging.getLogger("medlab.security")
 
-
 def get_redis_client() -> Redis:
+    if settings.redis_url:
+        return Redis.from_url(
+            settings.redis_url,
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+        )
     return Redis(
         host=settings.redis_host,
         port=settings.redis_port,
@@ -21,7 +25,6 @@ def get_redis_client() -> Redis:
         socket_connect_timeout=2,
         socket_timeout=2,
     )
-
 
 def check_login_rate_limit(identifier: str) -> bool:
     """

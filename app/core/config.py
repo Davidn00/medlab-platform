@@ -59,6 +59,11 @@ class Settings(BaseSettings):
 
     REDIS_PASSWORD: str | None = None
 
+    redis_url: str | None = Field(
+        default=None,
+        validation_alias="REDIS_URL",
+    )
+
     redis_host: str = Field(
         default="redis",
         validation_alias="REDIS_HOST",
@@ -132,8 +137,10 @@ class Settings(BaseSettings):
 
     LOGIN_RATE_WINDOW_SECONDS: int = 60
 
-    reports_dir: str = "/app/reports"
-
+    reports_dir: str = Field(
+        default="/app/reports",
+        validation_alias="REPORTS_DIR",
+    )
 
 # Creamos una única instancia de configuración.
 #

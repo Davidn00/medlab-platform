@@ -23,7 +23,11 @@ from app.core.config import settings
 #
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True,  # Muestra todas las consultas SQL en la terminal
+    echo=settings.ENVIRONMENT == "development",
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=3,
+    max_overflow=2,
 )
 
 

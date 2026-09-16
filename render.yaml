@@ -1,0 +1,160 @@
+services:
+
+  # ==========================================================
+  # Render Key Value
+  # ==========================================================
+
+  - type: keyvalue
+    name: medlab-redis
+    plan: free
+    region: ohio
+
+    maxmemoryPolicy: noeviction
+
+    ipAllowList:
+      - source: 0.0.0.0/32
+        description: Internal-only access
+
+
+  # ==========================================================
+  # MedLab API
+  # ==========================================================
+
+  - type: web
+    name: medlab-platform
+    runtime: docker
+
+    plan: free
+    region: ohio
+
+    dockerfilePath: ./Dockerfile.prod
+    dockerContext: .
+
+    dockerCommand: >
+      sh -c
+      "alembic upgrade head &&
+      python -m app.seed &&
+      python -m app.runtime.render"
+
+    healthCheckPath: /health/live
+
+    maxShutdownDelaySeconds: 60
+
+    autoDeployTrigger: checksPass
+
+    envVars:
+
+      # ------------------------------------------------------
+      # Application
+      # ------------------------------------------------------
+
+      - key: APP_NAME
+        value: MedLab Platform
+
+      - key: APP_VERSION
+        value: 1.0.0
+
+      - key: ENVIRONMENT
+        value: production
+
+      - key: PORT
+        value: "10000"
+
+
+      # ------------------------------------------------------
+      # Security
+      # ------------------------------------------------------
+
+      - key: SECRET_KEY
+        generateValue: true
+
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+
+      - key: JWT_ISSUER
+        value: medlab-platform
+
+      - key: ENABLE_DOCS
+        value: "true"
+
+      - key: ALLOWED_HOSTS
+        value: "*.onrender.com,localhost,127.0.0.1"
+
+      - key: CORS_ORIGINS
+        value: ""
+
+      - key: LOGIN_RATE_LIMIT
+        value: "5"
+
+      - key: LOGIN_RATE_WINDOW_SECONDS
+        value: "60"
+
+
+      # ------------------------------------------------------
+      # PostgreSQL — Neon
+      # ------------------------------------------------------
+
+      - key: DATABASE_URL
+        sync: false
+
+
+      # ------------------------------------------------------
+      # Redis / Valkey — Render
+      # ------------------------------------------------------
+
+      - key: REDIS_URL
+        fromService:
+          name: medlab-redis
+          type: keyvalue
+          property: connectionString
+
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: medlab-redis
+          type: keyvalue
+          property: connectionString
+
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          name: medlab-redis
+          type: keyvalue
+          property: connectionString
+
+
+      # ------------------------------------------------------
+      # Celery fault tolerance
+      # ------------------------------------------------------
+
+      - key: CELERY_TASK_MAX_RETRIES
+        value: "5"
+
+      - key: CELERY_TASK_RETRY_BACKOFF
+        value: "10"
+
+      - key: CELERY_TASK_RETRY_BACKOFF_MAX
+        value: "300"
+
+      - key: CELERY_TASK_RETRY_JITTER
+        value: "true"
+
+
+      # ------------------------------------------------------
+      # Reports
+      # ------------------------------------------------------
+
+      - key: REPORTS_DIR
+        value: /app/reports
+
+
+      # ------------------------------------------------------
+      # Initial administrator
+      # ------------------------------------------------------
+
+      - key: ADMIN_EMAIL
+        sync: false
+
+      - key: ADMIN_PASSWORD
+        sync: false
+
+      - key: ADMIN_FULL_NAME
+        sync: false

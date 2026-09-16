@@ -122,14 +122,21 @@ def check_redis() -> dict:
     client = None
 
     try:
-        client = Redis(
-            host=settings.redis_host,
-            port=settings.redis_port,
-            password=settings.REDIS_PASSWORD,
-            db=settings.redis_db,
-            socket_connect_timeout=2,
-            socket_timeout=2,
-        )
+        if settings.redis_url:
+            client = Redis.from_url(
+                settings.redis_url,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
+        else:
+            client = Redis(
+                host=settings.redis_host,
+                port=settings.redis_port,
+                password=settings.REDIS_PASSWORD,
+                db=settings.redis_db,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+            )
 
         client.ping()
 
