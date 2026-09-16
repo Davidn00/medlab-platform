@@ -15,10 +15,10 @@ from pydantic import BaseModel, EmailStr
 
 from app.models.user import UserRole
 
-
 # ==========================================================
 # Esquema base
 # ==========================================================
+
 
 class UserBase(BaseModel):
     """
@@ -34,6 +34,7 @@ class UserBase(BaseModel):
 # Crear usuario
 # ==========================================================
 
+
 class UserCreate(UserBase):
     """
     Datos necesarios para crear un usuario.
@@ -45,6 +46,7 @@ class UserCreate(UserBase):
 # ==========================================================
 # Actualizar usuario
 # ==========================================================
+
 
 class UserUpdate(BaseModel):
     """
@@ -60,6 +62,7 @@ class UserUpdate(BaseModel):
 # Respuesta pública
 # ==========================================================
 
+
 class UserResponse(UserBase):
     """
     Información que la API devolverá al cliente.
@@ -72,6 +75,4 @@ class UserResponse(UserBase):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}

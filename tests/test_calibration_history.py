@@ -17,10 +17,7 @@ def admin_headers(client):
 
     assert response.status_code == 200
 
-    return {
-        "Authorization":
-            f"Bearer {response.json()['access_token']}"
-    }
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
 def create_equipment(client):
@@ -31,8 +28,7 @@ def create_equipment(client):
             "name": "Equipo Calibration History",
             "manufacturer": "MedLab",
             "model": "CH-001",
-            "serial_number":
-                "TEST-CAL-HISTORY-001",
+            "serial_number": "TEST-CAL-HISTORY-001",
             "location": "Laboratorio",
             "status": "ACTIVE",
         },
@@ -87,8 +83,7 @@ def test_calibration_history(
     )
 
     response = client.get(
-        f"/api/v2/calibrations/equipment/"
-        f"{equipment_id}/history",
+        f"/api/v2/calibrations/equipment/{equipment_id}/history",
         headers=headers,
     )
 
@@ -102,13 +97,6 @@ def test_calibration_history(
 
     assert data["metrics"]["total_calibrations"] == 2
 
-    assert (
-        data["metrics"]["last_calibration"]
-        == "2026-01-01T10:00:00+00:00"
-    )
+    assert data["metrics"]["last_calibration"] == "2026-01-01T10:00:00+00:00"
 
-    assert (
-        data["metrics"]
-        ["calibration_frequency_days"]
-        == 365.0
-    )
+    assert data["metrics"]["calibration_frequency_days"] == 365.0

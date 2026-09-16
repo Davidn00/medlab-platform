@@ -9,15 +9,14 @@ Proyecto: MedLab Platform
 
 from sqlalchemy.orm import Session
 
-from app.core.security import hash_password
-from app.models.user import User
-from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate
-
 from app.core.security import (
     hash_password,
     validate_password_strength,
 )
+from app.models.user import User
+from app.repositories.user_repository import UserRepository
+from app.schemas.user import UserCreate
+
 
 class UserService:
     """
@@ -45,11 +44,11 @@ class UserService:
             raise ValueError("Ya existe un usuario con ese email")
 
         validate_password_strength(user_data.password)
-        
+
         user = User(
             full_name=user_data.full_name,
             email=user_data.email,
-           hashed_password=hash_password(user_data.password),
+            hashed_password=hash_password(user_data.password),
             role=user_data.role,
         )
 

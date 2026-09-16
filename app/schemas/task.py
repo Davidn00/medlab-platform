@@ -1,4 +1,3 @@
-
 """
 Schemas relacionados con tareas asíncronas.
 
@@ -42,4 +41,3 @@ class TaskStatusResponse(BaseModel):
     status: str
     result: Any | None = None
     error: str | None = None
-

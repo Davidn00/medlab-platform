@@ -6,7 +6,7 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
@@ -59,7 +59,7 @@ class EquipmentLifecycleEvent(Base):
     event_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         index=True,
     )
 
@@ -91,7 +91,7 @@ class EquipmentLifecycleEvent(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     equipment = relationship(

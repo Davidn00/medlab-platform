@@ -45,12 +45,8 @@ def test_create_calibration(
         "/api/v1/calibrations",
         json={
             "equipment_id": equipment_id,
-            "calibration_date": (
-                "2026-08-01T10:00:00Z"
-            ),
-            "next_calibration_date": (
-                "2027-08-01T10:00:00Z"
-            ),
+            "calibration_date": ("2026-08-01T10:00:00Z"),
+            "next_calibration_date": ("2027-08-01T10:00:00Z"),
             "performed_by": "Técnico MedLab",
             "certificate_number": "CERT-001",
             "status": "VALID",
@@ -66,6 +62,7 @@ def test_create_calibration(
     assert data["performed_by"] == "Técnico MedLab"
     assert data["certificate_number"] == "CERT-001"
 
+
 def test_create_calibration_nonexistent_equipment(
     client: TestClient,
 ):
@@ -77,15 +74,9 @@ def test_create_calibration_nonexistent_equipment(
     response = client.post(
         "/api/v1/calibrations",
         json={
-            "equipment_id": (
-                "550e8400-e29b-41d4-a716-446655440000"
-            ),
-            "calibration_date": (
-                "2026-08-01T10:00:00Z"
-            ),
-            "next_calibration_date": (
-                "2027-08-01T10:00:00Z"
-            ),
+            "equipment_id": ("550e8400-e29b-41d4-a716-446655440000"),
+            "calibration_date": ("2026-08-01T10:00:00Z"),
+            "next_calibration_date": ("2027-08-01T10:00:00Z"),
             "performed_by": "Técnico MedLab",
             "certificate_number": "CERT-002",
             "status": "VALID",
@@ -93,6 +84,7 @@ def test_create_calibration_nonexistent_equipment(
     )
 
     assert response.status_code == 404
+
 
 def test_invalid_calibration_dates(
     client: TestClient,
@@ -108,12 +100,8 @@ def test_invalid_calibration_dates(
         "/api/v1/calibrations",
         json={
             "equipment_id": equipment_id,
-            "calibration_date": (
-                "2026-08-20T10:00:00Z"
-            ),
-            "next_calibration_date": (
-                "2026-08-10T10:00:00Z"
-            ),
+            "calibration_date": ("2026-08-20T10:00:00Z"),
+            "next_calibration_date": ("2026-08-10T10:00:00Z"),
             "performed_by": "Técnico MedLab",
             "certificate_number": "CERT-003",
             "status": "VALID",
@@ -123,9 +111,9 @@ def test_invalid_calibration_dates(
     assert response.status_code == 400
 
     assert response.json()["detail"] == (
-        "La próxima fecha de calibración "
-        "debe ser posterior a la fecha de calibración."
+        "La próxima fecha de calibración debe ser posterior a la fecha de calibración."
     )
+
 
 def test_equal_calibration_dates(
     client: TestClient,
@@ -140,18 +128,15 @@ def test_equal_calibration_dates(
         "/api/v1/calibrations",
         json={
             "equipment_id": equipment_id,
-            "calibration_date": (
-                "2026-08-20T10:00:00Z"
-            ),
-            "next_calibration_date": (
-                "2026-08-20T10:00:00Z"
-            ),
+            "calibration_date": ("2026-08-20T10:00:00Z"),
+            "next_calibration_date": ("2026-08-20T10:00:00Z"),
             "performed_by": "Técnico MedLab",
             "status": "VALID",
         },
     )
 
     assert response.status_code == 400
+
 
 def test_get_calibrations_by_equipment(
     client: TestClient,
@@ -167,12 +152,8 @@ def test_get_calibrations_by_equipment(
         "/api/v1/calibrations",
         json={
             "equipment_id": equipment_id,
-            "calibration_date": (
-                "2026-08-01T10:00:00Z"
-            ),
-            "next_calibration_date": (
-                "2027-08-01T10:00:00Z"
-            ),
+            "calibration_date": ("2026-08-01T10:00:00Z"),
+            "next_calibration_date": ("2027-08-01T10:00:00Z"),
             "performed_by": "Técnico",
             "status": "VALID",
         },
@@ -180,9 +161,7 @@ def test_get_calibrations_by_equipment(
 
     assert response.status_code == 201
 
-    response = client.get(
-        f"/api/v1/equipment/{equipment_id}/calibrations"
-    )
+    response = client.get(f"/api/v1/equipment/{equipment_id}/calibrations")
 
     assert response.status_code == 200
 
@@ -191,4 +170,3 @@ def test_get_calibrations_by_equipment(
     assert isinstance(data, list)
     assert len(data) == 1
     assert data[0]["equipment_id"] == equipment_id
-

@@ -13,7 +13,6 @@ from app.models.maintenance import Maintenance
 
 
 class MaintenanceRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -34,11 +33,7 @@ class MaintenanceRepository:
     ) -> Maintenance | None:
 
         return (
-            self.db.query(Maintenance)
-            .filter(
-                Maintenance.id == maintenance_id
-            )
-            .first()
+            self.db.query(Maintenance).filter(Maintenance.id == maintenance_id).first()
         )
 
     def get_by_equipment_id(
@@ -48,25 +43,14 @@ class MaintenanceRepository:
 
         return (
             self.db.query(Maintenance)
-            .filter(
-                Maintenance.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                Maintenance.scheduled_date.desc()
-            )
+            .filter(Maintenance.equipment_id == equipment_id)
+            .order_by(Maintenance.scheduled_date.desc())
             .all()
         )
 
     def get_all(self) -> list[Maintenance]:
 
-        return (
-            self.db.query(Maintenance)
-            .order_by(
-                Maintenance.created_at.desc()
-            )
-            .all()
-        )
+        return self.db.query(Maintenance).order_by(Maintenance.created_at.desc()).all()
 
     def update(
         self,

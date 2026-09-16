@@ -8,7 +8,11 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.sample import Sample
 
 from sqlalchemy import Date, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
@@ -18,7 +22,7 @@ from app.db.base import Base
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Patient(Base):

@@ -5,16 +5,16 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import EquipmentNotFoundError
 from app.core.exceptions import (
     EquipmentNotFoundError,
     InvalidEquipmentStatusTransitionError,
 )
+from app.models.audit_log import AuditAction
 from app.models.biomedical_equipment import (
     BiomedicalEquipment,
     EquipmentStatus,
@@ -30,11 +30,9 @@ from app.repositories.equipment_lifecycle_repository import (
     EquipmentLifecycleRepository,
 )
 from app.services.audit_service import AuditService
-from app.models.audit_log import AuditAction
 
 
 class EquipmentLifecycleService:
-
     ALLOWED_TRANSITIONS = {
         EquipmentStatus.ACTIVE: {
             EquipmentStatus.MAINTENANCE,
@@ -70,33 +68,23 @@ class EquipmentLifecycleService:
         user_id: UUID | None = None,
     ) -> BiomedicalEquipment:
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-        current_status = EquipmentStatus(
-            equipment.status
-        )
+        current_status = EquipmentStatus(equipment.status)
 
         if current_status == new_status:
             return equipment
 
-        allowed = self.ALLOWED_TRANSITIONS[
-            current_status
-        ]
+        allowed = self.ALLOWED_TRANSITIONS[current_status]
 
         if new_status not in allowed:
             raise InvalidEquipmentStatusTransitionError(
-                 f"No se permite cambiar el equipo "
-                 f"de {current_status.value} a "
-                 f"{new_status.value}."
+                f"No se permite cambiar el equipo "
+                f"de {current_status.value} a "
+                f"{new_status.value}."
             )
 
         try:
@@ -107,11 +95,9 @@ class EquipmentLifecycleService:
             event = EquipmentLifecycleEvent(
                 equipment_id=equipment.id,
                 event_type=EquipmentEventType.EQUIPMENT,
-                event_date=datetime.now(timezone.utc),
+                event_date=datetime.now(UTC),
                 description=(
-                    f"Estado cambiado de "
-                    f"{current_status.value} a "
-                    f"{new_status.value}."
+                    f"Estado cambiado de {current_status.value} a {new_status.value}."
                 ),
                 performed_by=None,
                 previous_status=current_status.value,
@@ -126,9 +112,7 @@ class EquipmentLifecycleService:
                 entity_id=str(equipment.id),
                 action=AuditAction.STATUS_CHANGED,
                 description=(
-                    f"Estado cambiado de "
-                    f"{current_status.value} a "
-                    f"{new_status.value}."
+                    f"Estado cambiado de {current_status.value} a {new_status.value}."
                 ),
             )
 
@@ -151,16 +135,10 @@ class EquipmentLifecycleService:
         user_id: UUID | None = None,
     ) -> EquipmentLifecycleEvent:
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
         try:
             event = EquipmentLifecycleEvent(
@@ -195,18 +173,9 @@ class EquipmentLifecycleService:
         equipment_id: UUID,
     ) -> list[EquipmentLifecycleEvent]:
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-        return (
-            self.lifecycle_repository
-            .get_by_equipment_id(equipment_id)
-        )
+        return self.lifecycle_repository.get_by_equipment_id(equipment_id)

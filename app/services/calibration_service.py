@@ -8,14 +8,14 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from app.core.exceptions import (
-    CalibrationNotFoundError,
     EquipmentNotFoundError,
     InvalidCalibrationDatesError,
 )
+from app.models.audit_log import AuditAction
 from app.models.calibration import Calibration, CalibrationStatus
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
@@ -27,10 +27,8 @@ from app.schemas.calibration import (
     CalibrationCreate,
     CalibrationUpdate,
 )
-
-from sqlalchemy.orm import Session
 from app.services.audit_service import AuditService
-from app.models.audit_log import AuditAction
+
 
 class CalibrationService:
     """
@@ -50,16 +48,10 @@ class CalibrationService:
         self.calibration_repository = calibration_repository
         self.equipment_repository = equipment_repository
 
-        self.db = (
-            db
-            if db is not None
-            else calibration_repository.db
-        )
+        self.db = db if db is not None else calibration_repository.db
 
         self.audit_service = (
-            audit_service
-            if audit_service is not None
-            else AuditService(self.db)
+            audit_service if audit_service is not None else AuditService(self.db)
         )
 
     def create(
@@ -76,16 +68,10 @@ class CalibrationService:
         db = self.calibration_repository.db
 
         try:
-            equipment = (
-                self.equipment_repository.get_by_id(
-                    data.equipment_id
-                )
-            )
+            equipment = self.equipment_repository.get_by_id(data.equipment_id)
 
             if equipment is None:
-                raise EquipmentNotFoundError(
-                    "El equipo biomédico indicado no existe."
-                )
+                raise EquipmentNotFoundError("El equipo biomédico indicado no existe.")
 
             self._validate_dates(
                 data.calibration_date,
@@ -95,20 +81,14 @@ class CalibrationService:
             calibration = Calibration(
                 equipment_id=data.equipment_id,
                 calibration_date=data.calibration_date,
-                next_calibration_date=(
-                    data.next_calibration_date
-                ),
+                next_calibration_date=(data.next_calibration_date),
                 performed_by=data.performed_by,
                 certificate_number=data.certificate_number,
                 status=data.status,
                 notes=data.notes,
             )
 
-            calibration = (
-                self.calibration_repository.create(
-                    calibration
-                )
-            )
+            calibration = self.calibration_repository.create(calibration)
 
             db.commit()
             db.refresh(calibration)
@@ -127,9 +107,7 @@ class CalibrationService:
         Obtiene una calibración por UUID.
         """
 
-        return self.calibration_repository.get_by_id(
-            calibration_id
-        )
+        return self.calibration_repository.get_by_id(calibration_id)
 
     def get_all(
         self,
@@ -148,21 +126,12 @@ class CalibrationService:
         Obtiene las calibraciones de un equipo.
         """
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "El equipo biomédico indicado no existe."
-            )
+            raise EquipmentNotFoundError("El equipo biomédico indicado no existe.")
 
-        return (
-            self.calibration_repository
-            .get_by_equipment_id(equipment_id)
-        )
+        return self.calibration_repository.get_by_equipment_id(equipment_id)
 
     def get_expiring_calibrations(
         self,
@@ -176,19 +145,14 @@ class CalibrationService:
         """
 
         if days < 1:
-            raise ValueError(
-                "El número de días debe ser mayor que cero."
-            )
+            raise ValueError("El número de días debe ser mayor que cero.")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         end_date = now + timedelta(days=days)
 
-        return (
-            self.calibration_repository
-            .get_expiring_calibrations(
-                start_date=now,
-                end_date=end_date,
-            )
+        return self.calibration_repository.get_expiring_calibrations(
+            start_date=now,
+            end_date=end_date,
         )
 
     def get_expired_calibrations(
@@ -199,13 +163,10 @@ class CalibrationService:
         calibración ya venció.
         """
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
-        return (
-            self.calibration_repository
-            .get_expired_calibrations(
-                current_date=now,
-            )
+        return self.calibration_repository.get_expired_calibrations(
+            current_date=now,
         )
 
     def update(
@@ -224,18 +185,12 @@ class CalibrationService:
         db = self.calibration_repository.db
 
         try:
-            calibration = (
-                self.calibration_repository.get_by_id(
-                    calibration_id
-                )
-            )
+            calibration = self.calibration_repository.get_by_id(calibration_id)
 
             if calibration is None:
                 return None
 
-            update_data = data.model_dump(
-                exclude_unset=True
-            )
+            update_data = data.model_dump(exclude_unset=True)
 
             equipment_id = update_data.get(
                 "equipment_id",
@@ -243,17 +198,11 @@ class CalibrationService:
             )
 
             if "equipment_id" in update_data:
-
-                equipment = (
-                    self.equipment_repository.get_by_id(
-                        equipment_id
-                    )
-                )
+                equipment = self.equipment_repository.get_by_id(equipment_id)
 
                 if equipment is None:
                     raise EquipmentNotFoundError(
-                        "El equipo biomédico indicado "
-                        "no existe."
+                        "El equipo biomédico indicado no existe."
                     )
 
             calibration_date = update_data.get(
@@ -274,11 +223,7 @@ class CalibrationService:
             for field, value in update_data.items():
                 setattr(calibration, field, value)
 
-            calibration = (
-                self.calibration_repository.update(
-                    calibration
-                )
-            )
+            calibration = self.calibration_repository.update(calibration)
 
             db.commit()
             db.refresh(calibration)
@@ -303,18 +248,12 @@ class CalibrationService:
         db = self.calibration_repository.db
 
         try:
-            calibration = (
-                self.calibration_repository.get_by_id(
-                    calibration_id
-                )
-            )
+            calibration = self.calibration_repository.get_by_id(calibration_id)
 
             if calibration is None:
                 return False
 
-            self.calibration_repository.delete(
-                calibration
-            )
+            self.calibration_repository.delete(calibration)
 
             db.commit()
 
@@ -369,7 +308,7 @@ class CalibrationService:
         except Exception:
             self.db.rollback()
             raise
-        
+
     @staticmethod
     def _validate_dates(
         calibration_date: datetime,
@@ -385,4 +324,3 @@ class CalibrationService:
                 "debe ser posterior a la fecha de "
                 "calibración."
             )
-

@@ -2,16 +2,12 @@
 Endpoints de autenticación.
 """
 
-from urllib import request
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import Request
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token, verify_password
 from app.core.rate_limit import check_login_rate_limit, clear_login_rate_limit
-
+from app.core.security import create_access_token, verify_password
 from app.db.session import get_db
 from app.repositories.user_repository import UserRepository
 from app.schemas.token import Token
@@ -30,21 +26,15 @@ def login(
     """
     Login mediante email y contraseña.
     """
-    client_ip = (
-        request.client.host
-        if request.client
-        else "unknown"
-    )
+    client_ip = request.client.host if request.client else "unknown"
 
-    identifier = (
-        f"{client_ip}:{form_data.username.lower()}"
-    )
+    identifier = f"{client_ip}:{form_data.username.lower()}"
 
     if not check_login_rate_limit(identifier):
         raise HTTPException(
             status_code=429,
             detail="Demasiados intentos de autenticación. "
-                "Intenta nuevamente más tarde.",
+            "Intenta nuevamente más tarde.",
         )
     user = repository.get_by_email(db, form_data.username)
 

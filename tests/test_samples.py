@@ -39,9 +39,7 @@ def create_patient(client, token):
 
     response = client.post(
         "/api/v1/patients",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json=patient_data,
     )
 
@@ -67,9 +65,7 @@ def test_create_sample(client):
 
     response = client.post(
         "/api/v1/samples",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json=sample_data,
     )
 
@@ -112,9 +108,7 @@ def test_create_sample_invalid_type(client):
 
     response = client.post(
         "/api/v1/samples",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "patient_id": patient_id,
             "sample_type": "invalid_sample_type",
@@ -135,9 +129,7 @@ def test_create_sample_missing_required_fields(client):
 
     response = client.post(
         "/api/v1/samples",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "sample_type": "blood",
         },
@@ -163,9 +155,7 @@ def test_get_sample(client):
 
     create_response = client.post(
         "/api/v1/samples",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json=sample_data,
     )
 
@@ -175,9 +165,7 @@ def test_get_sample(client):
 
     response = client.get(
         f"/api/v1/samples/{sample_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
@@ -207,9 +195,7 @@ def test_get_samples_by_patient(client):
 
     create_response = client.post(
         "/api/v1/samples",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json=sample_data,
     )
 
@@ -217,9 +203,7 @@ def test_get_samples_by_patient(client):
 
     response = client.get(
         f"/api/v1/samples/patient/{patient_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
@@ -229,7 +213,4 @@ def test_get_samples_by_patient(client):
     assert isinstance(data, list)
     assert len(data) >= 1
 
-    assert any(
-        sample["id"] == create_response.json()["id"]
-        for sample in data
-    )
+    assert any(sample["id"] == create_response.json()["id"] for sample in data)

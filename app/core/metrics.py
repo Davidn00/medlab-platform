@@ -4,7 +4,6 @@ Métricas Prometheus de MedLab Platform.
 
 from prometheus_client import Counter, Histogram
 
-
 HTTP_REQUESTS_TOTAL = Counter(
     "medlab_http_requests_total",
     "Total de solicitudes HTTP.",

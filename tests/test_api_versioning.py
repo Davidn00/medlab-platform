@@ -1,4 +1,3 @@
-
 """
 Pruebas de versionado de la API.
 
@@ -13,11 +12,9 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
 from app.main import app
-
 
 # ==========================================================
 # Contrato de rutas API v1
@@ -69,6 +66,7 @@ EXPECTED_V1_ROUTES = {
 # Utilidades
 # ==========================================================
 
+
 def get_api_routes(application):
     routes = set()
 
@@ -91,9 +89,7 @@ def get_api_routes(application):
         # mediante _IncludedRouter.
         if hasattr(route, "original_router"):
             include_context = route.include_context
-            include_prefix = (
-                getattr(include_context, "prefix", "") or ""
-            )
+            include_prefix = getattr(include_context, "prefix", "") or ""
 
             original_router = route.original_router
 
@@ -104,10 +100,7 @@ def get_api_routes(application):
                 # nested_route.path ya contiene el prefix del
                 # APIRouter original. Solo debemos agregar el
                 # prefix utilizado al incluir el router.
-                path = (
-                    f"{include_prefix.rstrip('/')}"
-                    f"{nested_route.path}"
-                )
+                path = f"{include_prefix.rstrip('/')}{nested_route.path}"
 
                 if not path.startswith("/"):
                     path = f"/{path}"
@@ -123,6 +116,7 @@ def get_api_routes(application):
 # ==========================================================
 # Parte 19 - API v2
 # ==========================================================
+
 
 def test_api_v2_version_endpoint(client):
     """
@@ -158,6 +152,7 @@ def test_api_v2_version_is_independent_from_v1(client):
 # Compatibilidad API v1
 # ==========================================================
 
+
 def test_all_existing_v1_routes_are_preserved():
     """
     Comprueba que todos los endpoints v1 existentes
@@ -168,8 +163,7 @@ def test_all_existing_v1_routes_are_preserved():
     missing_routes = EXPECTED_V1_ROUTES - actual_routes
 
     assert not missing_routes, (
-        "Se detectaron endpoints v1 desaparecidos: "
-        f"{sorted(missing_routes)}"
+        f"Se detectaron endpoints v1 desaparecidos: {sorted(missing_routes)}"
     )
 
 
@@ -182,11 +176,7 @@ def test_v1_does_not_expose_v2_endpoint():
 
     assert ("GET", "/api/v2/version") in actual_routes
 
-    v1_routes = {
-        route
-        for route in actual_routes
-        if route[1].startswith("/api/v1")
-    }
+    v1_routes = {route for route in actual_routes if route[1].startswith("/api/v1")}
 
     assert ("GET", "/api/v2/version") not in v1_routes
 
@@ -194,6 +184,7 @@ def test_v1_does_not_expose_v2_endpoint():
 # ==========================================================
 # Compatibilidad funcional mínima
 # ==========================================================
+
 
 def test_v1_patients_requires_authentication(client):
     """
@@ -219,4 +210,3 @@ def test_v1_authentication_endpoint_still_exists(client):
     )
 
     assert response.status_code == 401
-

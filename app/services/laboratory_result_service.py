@@ -46,25 +46,17 @@ class LaboratoryResultService:
         """
 
         test = (
-            self.db.query(LaboratoryTest)
-            .filter(LaboratoryTest.id == test_id)
-            .first()
+            self.db.query(LaboratoryTest).filter(LaboratoryTest.id == test_id).first()
         )
 
         if test is None:
-            raise ValueError(
-                f"LaboratoryTest {test_id} no encontrado."
-            )
+            raise ValueError(f"LaboratoryTest {test_id} no encontrado.")
 
         if test.result_value is None:
-            raise ValueError(
-                "La prueba no tiene un resultado para procesar."
-            )
+            raise ValueError("La prueba no tiene un resultado para procesar.")
 
         if not str(test.result_value).strip():
-            raise ValueError(
-                "El resultado de la prueba está vacío."
-            )
+            raise ValueError("El resultado de la prueba está vacío.")
 
         test.status = "COMPLETED"
 

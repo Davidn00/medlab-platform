@@ -9,34 +9,27 @@ from fastapi import (
     APIRouter,
     Depends,
 )
-
 from sqlalchemy.orm import Session
 
 from app.api.deps import (
     get_current_user,
 )
-
 from app.core.permissions import (
     require_roles,
 )
-
 from app.db.session import (
     get_db,
 )
-
 from app.models.user import (
     User,
     UserRole,
 )
-
 from app.schemas.dashboard import (
     DashboardStatisticsResponse,
 )
-
 from app.services.dashboard_service import (
     DashboardService,
 )
-
 
 router = APIRouter(
     prefix="/dashboard",
@@ -61,9 +54,7 @@ router = APIRouter(
 )
 def get_dashboard_statistics(
     db: Session = Depends(get_db),
-    _: User = Depends(
-        get_current_user
-    ),
+    _: User = Depends(get_current_user),
 ):
     """
     Devuelve estadísticas agregadas
@@ -72,7 +63,4 @@ def get_dashboard_statistics(
 
     service = DashboardService(db)
 
-    return (
-        service
-        .get_statistics()
-    )
+    return service.get_statistics()

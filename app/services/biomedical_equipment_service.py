@@ -12,6 +12,11 @@ from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
+from app.core.exceptions import (
+    EquipmentAlreadyExistsError,
+    EquipmentHasCalibrationsError,
+    EquipmentNotFoundError,
+)
 from app.models.biomedical_equipment import BiomedicalEquipment
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
@@ -22,11 +27,6 @@ from app.repositories.calibration_repository import (
 from app.schemas.biomedical_equipment import (
     BiomedicalEquipmentCreate,
     BiomedicalEquipmentUpdate,
-)
-from app.core.exceptions import (
-    EquipmentAlreadyExistsError,
-    EquipmentHasCalibrationsError,
-    EquipmentNotFoundError,
 )
 
 
@@ -70,10 +70,8 @@ class BiomedicalEquipmentService:
         """
 
         try:
-            existing_equipment = (
-                self.equipment_repository.get_by_serial_number(
-                    data.serial_number
-                )
+            existing_equipment = self.equipment_repository.get_by_serial_number(
+                data.serial_number
             )
 
             if existing_equipment:
@@ -90,9 +88,7 @@ class BiomedicalEquipmentService:
                 status=data.status,
             )
 
-            equipment = self.equipment_repository.create(
-                equipment
-            )
+            equipment = self.equipment_repository.create(equipment)
 
             self.db.commit()
             self.db.refresh(equipment)
@@ -122,9 +118,7 @@ class BiomedicalEquipmentService:
         Obtiene un equipo por su UUID.
         """
 
-        return self.equipment_repository.get_by_id(
-            equipment_id
-        )
+        return self.equipment_repository.get_by_id(equipment_id)
 
     def get_all(
         self,
@@ -147,31 +141,19 @@ class BiomedicalEquipmentService:
         """
 
         try:
-            equipment = self.equipment_repository.get_by_id(
-                equipment_id
-            )
+            equipment = self.equipment_repository.get_by_id(equipment_id)
 
             if equipment is None:
-                raise EquipmentNotFoundError(
-                    "Equipo biomédico no encontrado."
-                )
+                raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-            update_data = data.model_dump(
-                exclude_unset=True
-            )
+            update_data = data.model_dump(exclude_unset=True)
 
             if "serial_number" in update_data:
-                existing_equipment = (
-                    self.equipment_repository
-                    .get_by_serial_number(
-                        update_data["serial_number"]
-                    )
+                existing_equipment = self.equipment_repository.get_by_serial_number(
+                    update_data["serial_number"]
                 )
 
-                if (
-                    existing_equipment
-                    and existing_equipment.id != equipment.id
-                ):
+                if existing_equipment and existing_equipment.id != equipment.id:
                     raise EquipmentAlreadyExistsError(
                         "Ya existe otro equipo con ese número de serie."
                     )
@@ -179,9 +161,7 @@ class BiomedicalEquipmentService:
             for field, value in update_data.items():
                 setattr(equipment, field, value)
 
-            equipment = self.equipment_repository.update(
-                equipment
-            )
+            equipment = self.equipment_repository.update(equipment)
 
             self.db.commit()
             self.db.refresh(equipment)
@@ -221,19 +201,12 @@ class BiomedicalEquipmentService:
         """
 
         try:
-            equipment = self.equipment_repository.get_by_id(
-                equipment_id
-            )
+            equipment = self.equipment_repository.get_by_id(equipment_id)
 
             if equipment is None:
-                raise EquipmentNotFoundError(
-                    "Equipo biomédico no encontrado."
-                )
+                raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-            calibrations = (
-                self.calibration_repository
-                .get_by_equipment_id(equipment_id)
-            )
+            calibrations = self.calibration_repository.get_by_equipment_id(equipment_id)
 
             if calibrations:
                 raise EquipmentHasCalibrationsError(
@@ -241,9 +214,7 @@ class BiomedicalEquipmentService:
                     "calibraciones registradas."
                 )
 
-            self.equipment_repository.delete(
-                equipment
-            )
+            self.equipment_repository.delete(equipment)
 
             self.db.commit()
 
@@ -260,4 +231,3 @@ class BiomedicalEquipmentService:
         except Exception:
             self.db.rollback()
             raise
-

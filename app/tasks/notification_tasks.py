@@ -6,14 +6,12 @@ Proyecto: MedLab Platform
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from app.db.session import SessionLocal
-from app.models.calibration import Calibration
 from app.repositories.calibration_repository import CalibrationRepository
 from app.services.notification_service import NotificationService
-from app.workers.celery_app import celery_app
 from app.tasks.retry import (
     TASK_RETRY_BACKOFF,
     TASK_RETRY_BACKOFF_MAX,
@@ -21,6 +19,7 @@ from app.tasks.retry import (
     TASK_RETRY_KWARGS,
     TRANSIENT_TASK_ERRORS,
 )
+from app.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +43,7 @@ def notify_calibration_expired(
     try:
         repository = CalibrationRepository(db)
 
-        calibration = repository.get_by_id(
-            UUID(calibration_id)
-        )
+        calibration = repository.get_by_id(UUID(calibration_id))
 
         if calibration is None:
             logger.warning(
@@ -59,7 +56,7 @@ def notify_calibration_expired(
                 "calibration_id": calibration_id,
             }
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if (
             calibration.status.value != "expired"
@@ -73,9 +70,7 @@ def notify_calibration_expired(
 
         service = NotificationService(db)
 
-        created_count = service.notify_calibration_expired(
-            calibration
-        )
+        created_count = service.notify_calibration_expired(calibration)
 
         db.commit()
 
@@ -95,9 +90,7 @@ def notify_calibration_expired(
 
     except Exception:
         db.rollback()
-        logger.exception(
-            "Error creating expired calibration notifications"
-        )
+        logger.exception("Error creating expired calibration notifications")
         raise
 
     finally:
@@ -124,9 +117,7 @@ def notify_calibration_expiring(
     try:
         repository = CalibrationRepository(db)
 
-        calibration = repository.get_by_id(
-            UUID(calibration_id)
-        )
+        calibration = repository.get_by_id(UUID(calibration_id))
 
         if calibration is None:
             logger.warning(
@@ -139,7 +130,7 @@ def notify_calibration_expiring(
                 "calibration_id": calibration_id,
             }
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         end_date = now + timedelta(days=days)
 
         if (
@@ -178,9 +169,7 @@ def notify_calibration_expiring(
 
     except Exception:
         db.rollback()
-        logger.exception(
-            "Error creating expiring calibration notifications"
-        )
+        logger.exception("Error creating expiring calibration notifications")
         raise
 
     finally:

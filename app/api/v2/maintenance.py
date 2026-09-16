@@ -36,13 +36,6 @@ from app.repositories.maintenance_repository import (
 from app.repositories.maintenance_schedule_repository import (
     MaintenanceScheduleRepository,
 )
-from app.schemas.maintenance_schedule import (
-    MaintenanceScheduleCreate,
-    MaintenanceScheduleResponse,
-)
-from app.services.maintenance_schedule_service import (
-    MaintenanceScheduleService,
-)
 from app.schemas.maintenance import (
     MaintenanceCreate,
     MaintenanceResponse,
@@ -51,10 +44,16 @@ from app.schemas.maintenance_record import (
     MaintenanceRecordCreate,
     MaintenanceRecordResponse,
 )
+from app.schemas.maintenance_schedule import (
+    MaintenanceScheduleCreate,
+    MaintenanceScheduleResponse,
+)
+from app.services.maintenance_schedule_service import (
+    MaintenanceScheduleService,
+)
 from app.services.maintenance_service import (
     MaintenanceService,
 )
-
 
 router = APIRouter(
     prefix="/maintenance",
@@ -68,18 +67,10 @@ def get_maintenance_service(
 
     return MaintenanceService(
         db=db,
-        maintenance_repository=(
-            MaintenanceRepository(db)
-        ),
-        record_repository=(
-            MaintenanceRecordRepository(db)
-        ),
-        equipment_repository=(
-            BiomedicalEquipmentRepository(db)
-        ),
-        lifecycle_repository=(
-            EquipmentLifecycleRepository(db)
-        ),
+        maintenance_repository=(MaintenanceRepository(db)),
+        record_repository=(MaintenanceRecordRepository(db)),
+        equipment_repository=(BiomedicalEquipmentRepository(db)),
+        lifecycle_repository=(EquipmentLifecycleRepository(db)),
     )
 
 
@@ -100,9 +91,7 @@ def get_maintenance_service(
 )
 def create_maintenance(
     data: MaintenanceCreate,
-    service: MaintenanceService = Depends(
-        get_maintenance_service
-    ),
+    service: MaintenanceService = Depends(get_maintenance_service),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -130,9 +119,7 @@ def create_maintenance(
     response_model=list[MaintenanceResponse],
 )
 def get_maintenance(
-    service: MaintenanceService = Depends(
-        get_maintenance_service
-    ),
+    service: MaintenanceService = Depends(get_maintenance_service),
     _: User = Depends(get_current_user),
 ):
 
@@ -145,16 +132,12 @@ def get_maintenance(
 )
 def get_equipment_maintenance(
     equipment_id: UUID,
-    service: MaintenanceService = Depends(
-        get_maintenance_service
-    ),
+    service: MaintenanceService = Depends(get_maintenance_service),
     _: User = Depends(get_current_user),
 ):
 
     try:
-        return service.get_by_equipment_id(
-            equipment_id
-        )
+        return service.get_by_equipment_id(equipment_id)
 
     except EquipmentNotFoundError as exc:
         raise HTTPException(
@@ -180,9 +163,7 @@ def get_equipment_maintenance(
 def update_maintenance_status(
     maintenance_id: UUID,
     new_status: MaintenanceStatus,
-    service: MaintenanceService = Depends(
-        get_maintenance_service
-    ),
+    service: MaintenanceService = Depends(get_maintenance_service),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -225,9 +206,7 @@ def update_maintenance_status(
 )
 def create_maintenance_record(
     data: MaintenanceRecordCreate,
-    service: MaintenanceService = Depends(
-        get_maintenance_service
-    ),
+    service: MaintenanceService = Depends(get_maintenance_service),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -263,9 +242,8 @@ def get_maintenance_records(
 
     repository = MaintenanceRecordRepository(db)
 
-    return repository.get_by_maintenance_id(
-        maintenance_id
-    )
+    return repository.get_by_maintenance_id(maintenance_id)
+
 
 def get_schedule_service(
     db: Session = Depends(get_db),
@@ -274,9 +252,7 @@ def get_schedule_service(
     return MaintenanceScheduleService(
         db=db,
         repository=MaintenanceScheduleRepository(db),
-        equipment_repository=(
-            BiomedicalEquipmentRepository(db)
-        ),
+        equipment_repository=(BiomedicalEquipmentRepository(db)),
     )
 
 
@@ -297,9 +273,7 @@ def get_schedule_service(
 )
 def create_maintenance_schedule(
     data: MaintenanceScheduleCreate,
-    service: MaintenanceScheduleService = Depends(
-        get_schedule_service
-    ),
+    service: MaintenanceScheduleService = Depends(get_schedule_service),
 ):
 
     try:
@@ -321,21 +295,15 @@ def create_maintenance_schedule(
 
 @router.get(
     "/schedules/equipment/{equipment_id}",
-    response_model=list[
-        MaintenanceScheduleResponse
-    ],
+    response_model=list[MaintenanceScheduleResponse],
 )
 def get_maintenance_schedules(
     equipment_id: UUID,
-    service: MaintenanceScheduleService = Depends(
-        get_schedule_service
-    ),
+    service: MaintenanceScheduleService = Depends(get_schedule_service),
 ):
 
     try:
-        return service.get_by_equipment_id(
-            equipment_id
-        )
+        return service.get_by_equipment_id(equipment_id)
 
     except EquipmentNotFoundError as exc:
         raise HTTPException(

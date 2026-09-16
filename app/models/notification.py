@@ -9,10 +9,11 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum as PyEnum
 
-from sqlalchemy import Boolean, DateTime, Enum as SQLEnum, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +22,7 @@ from app.db.base import Base
 
 def utc_now() -> datetime:
     """Devuelve la fecha y hora actual en UTC."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class NotificationType(str, PyEnum):

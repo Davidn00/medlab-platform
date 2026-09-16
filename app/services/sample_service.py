@@ -2,22 +2,21 @@
 Servicio de muestras.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.models.audit_log import AuditAction
 from app.models.sample import Sample, SampleStatus
 from app.repositories.patient_repository import PatientRepository
 from app.repositories.sample_repository import SampleRepository
 from app.schemas.sample import SampleCreate, SampleUpdate
-from app.models.audit_log import AuditAction
 from app.services.audit_service import AuditService
 
 
 class SampleService:
-
     def __init__(self, db: Session):
         self.repository = SampleRepository(db)
         self.patient_repository = PatientRepository(db)
@@ -32,9 +31,7 @@ class SampleService:
         Registra una nueva muestra.
         """
 
-        patient = self.patient_repository.get_by_id(
-            sample_data.patient_id
-        )
+        patient = self.patient_repository.get_by_id(sample_data.patient_id)
 
         if patient is None:
             raise HTTPException(
@@ -42,9 +39,7 @@ class SampleService:
                 detail="Paciente no encontrado.",
             )
 
-        existing = self.repository.get_by_code(
-            sample_data.sample_code
-        )
+        existing = self.repository.get_by_code(sample_data.sample_code)
 
         if existing:
             raise HTTPException(
@@ -67,7 +62,6 @@ class SampleService:
             description=f"Sample {sample.sample_code} created",
         )
         return sample
-    
 
     def get_sample(
         self,
@@ -110,9 +104,7 @@ class SampleService:
 
         sample = self.get_sample(sample_id)
 
-        update_data = sample_data.model_dump(
-            exclude_unset=True
-        )
+        update_data = sample_data.model_dump(exclude_unset=True)
 
         # Si cambia a RECEIVED y no existe fecha,
         # registrar automáticamente la recepción.
@@ -120,9 +112,7 @@ class SampleService:
             update_data.get("status") == SampleStatus.RECEIVED
             and sample.received_at is None
         ):
-            update_data["received_at"] = datetime.now(
-                timezone.utc
-            )
+            update_data["received_at"] = datetime.now(UTC)
 
         for field, value in update_data.items():
             setattr(sample, field, value)
@@ -136,7 +126,6 @@ class SampleService:
             description=f"Sample {sample.sample_code} updated",
         )
         return sample
-
 
     def delete_sample(
         self,

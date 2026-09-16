@@ -19,7 +19,6 @@ services:
           "CMD-SHELL",
           "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
         ]
-
       interval: 10s
       timeout: 5s
       retries: 10
@@ -53,43 +52,9 @@ services:
           "${REDIS_PASSWORD}",
           "ping"
         ]
-
       interval: 10s
       timeout: 5s
       retries: 10
-
-    restart: unless-stopped
-
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.prod
-
-    container_name: medlab_api_prod
-
-    env_file:
-      - .env.production
-
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-      redis:
-        condition: service_healthy
-
-    ports:
-      - "8000:8000"
-
-    volumes:
-      - reports_prod_data:/app/reports
-
-    command:
-      [
-        "sh",
-        "-c",
-        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
-      ]
 
     restart: unless-stopped
 
@@ -136,7 +101,6 @@ services:
       start_period: 20s
 
     restart: unless-stopped
-    
 
 
   celery_beat:
@@ -150,10 +114,10 @@ services:
       - .env.production
 
     depends_on:
-      redis:
+      postgres:
         condition: service_healthy
 
-      postgres:
+      redis:
         condition: service_healthy
 
     command:
@@ -164,7 +128,7 @@ services:
         "beat",
         "--loglevel=INFO"
       ]
-      
+
     healthcheck:
       test:
         [
@@ -177,7 +141,55 @@ services:
       start_period: 20s
 
     restart: unless-stopped
-    
+
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+
+    container_name: medlab_api_prod
+
+    env_file:
+      - .env.production
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+      redis:
+        condition: service_healthy
+
+      celery_worker:
+        condition: service_healthy
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - reports_prod_data:/app/reports
+
+    command:
+      [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
+      ]
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    restart: unless-stopped
 
 
 volumes:

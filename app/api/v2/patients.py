@@ -18,7 +18,6 @@ from fastapi import (
     Depends,
     Query,
 )
-
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -36,7 +35,6 @@ from app.schemas.pagination import (
 )
 from app.schemas.patient import PatientResponse
 
-
 router = APIRouter(
     prefix="/patients",
     tags=["Patients v2"],
@@ -45,9 +43,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=PaginatedResponse[
-        PatientResponse
-    ],
+    response_model=PaginatedResponse[PatientResponse],
     dependencies=[
         Depends(
             require_roles(

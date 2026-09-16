@@ -7,31 +7,23 @@ def admin_headers(client):
     response = client.post(
         "/api/v1/auth/login",
         data={
-            "username":
-                "admin@medlab.com",
-            "password":
-                "Admin123!SecurePassword",
+            "username": "admin@medlab.com",
+            "password": "Admin123!SecurePassword",
         },
     )
 
     assert response.status_code == 200
 
-    token = response.json()[
-        "access_token"
-    ]
+    token = response.json()["access_token"]
 
-    return {
-        "Authorization":
-            f"Bearer {token}"
-    }
+    return {"Authorization": f"Bearer {token}"}
 
 
 def test_v2_patients_pagination(
     client,
 ):
     response = client.get(
-        "/api/v2/patients"
-        "?page=1&limit=20",
+        "/api/v2/patients?page=1&limit=20",
         headers=admin_headers(client),
     )
 
@@ -84,10 +76,7 @@ def test_v2_calibrations_status_filter(
     client,
 ):
     response = client.get(
-        "/api/v2/calibrations"
-        "?page=1"
-        "&limit=10"
-        "&status=expired",
+        "/api/v2/calibrations?page=1&limit=10&status=expired",
         headers=admin_headers(client),
     )
 
@@ -103,10 +92,7 @@ def test_v2_equipment_search(
     client,
 ):
     response = client.get(
-        "/api/v2/equipment"
-        "?page=1"
-        "&limit=10"
-        "&search=TEST",
+        "/api/v2/equipment?page=1&limit=10&search=TEST",
         headers=admin_headers(client),
     )
 
@@ -122,10 +108,7 @@ def test_v2_laboratory_tests_filter(
     client,
 ):
     response = client.get(
-        "/api/v2/laboratory-tests"
-        "?page=1"
-        "&limit=10"
-        "&status=pending",
+        "/api/v2/laboratory-tests?page=1&limit=10&status=pending",
         headers=admin_headers(client),
     )
 
@@ -140,8 +123,6 @@ def test_v2_laboratory_tests_filter(
 def test_v2_requires_authentication(
     client,
 ):
-    response = client.get(
-        "/api/v2/patients"
-    )
+    response = client.get("/api/v2/patients")
 
     assert response.status_code == 401

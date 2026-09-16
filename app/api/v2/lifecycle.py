@@ -13,6 +13,7 @@ from fastapi import (
     HTTPException,
     status,
 )
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -39,8 +40,6 @@ from app.schemas.biomedical_equipment import (
 from app.services.equipment_lifecycle_service import (
     EquipmentLifecycleService,
 )
-from pydantic import BaseModel, Field
-
 
 router = APIRouter(
     prefix="/equipment",
@@ -53,7 +52,6 @@ class EquipmentStatusUpdate(BaseModel):
 
 
 class LifecycleEventCreate(BaseModel):
-
     event_type: EquipmentEventType
 
     description: str = Field(
@@ -72,12 +70,8 @@ def get_lifecycle_service(
 
     return EquipmentLifecycleService(
         db=db,
-        equipment_repository=(
-            BiomedicalEquipmentRepository(db)
-        ),
-        lifecycle_repository=(
-            EquipmentLifecycleRepository(db)
-        ),
+        equipment_repository=(BiomedicalEquipmentRepository(db)),
+        lifecycle_repository=(EquipmentLifecycleRepository(db)),
     )
 
 
@@ -98,9 +92,7 @@ def get_lifecycle_service(
 def change_equipment_status(
     equipment_id: UUID,
     data: EquipmentStatusUpdate,
-    service: EquipmentLifecycleService = Depends(
-        get_lifecycle_service
-    ),
+    service: EquipmentLifecycleService = Depends(get_lifecycle_service),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -141,9 +133,7 @@ def change_equipment_status(
 def create_lifecycle_event(
     equipment_id: UUID,
     data: LifecycleEventCreate,
-    service: EquipmentLifecycleService = Depends(
-        get_lifecycle_service
-    ),
+    service: EquipmentLifecycleService = Depends(get_lifecycle_service),
     current_user: User = Depends(get_current_user),
 ):
 
@@ -169,16 +159,12 @@ def create_lifecycle_event(
 )
 def get_equipment_lifecycle(
     equipment_id: UUID,
-    service: EquipmentLifecycleService = Depends(
-        get_lifecycle_service
-    ),
+    service: EquipmentLifecycleService = Depends(get_lifecycle_service),
     _: User = Depends(get_current_user),
 ):
 
     try:
-        return service.get_history(
-            equipment_id
-        )
+        return service.get_history(equipment_id)
 
     except EquipmentNotFoundError as exc:
         raise HTTPException(

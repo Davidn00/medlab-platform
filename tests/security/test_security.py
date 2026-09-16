@@ -23,9 +23,7 @@ def test_password_hash_and_verify():
 
 
 def test_password_policy_accepts_strong_password():
-    validate_password_strength(
-        "StrongPassword123!"
-    )
+    validate_password_strength("StrongPassword123!")
 
 
 @pytest.mark.parametrize(
@@ -44,9 +42,7 @@ def test_password_policy_rejects_weak_password(password):
 
 
 def test_jwt_contains_required_claims():
-    token = create_access_token(
-        "00000000-0000-0000-0000-000000000001"
-    )
+    token = create_access_token("00000000-0000-0000-0000-000000000001")
 
     payload = decode_access_token(token)
 

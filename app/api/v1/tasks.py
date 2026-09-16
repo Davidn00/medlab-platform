@@ -6,11 +6,11 @@ Proyecto: MedLab Platform
 """
 
 from celery.result import AsyncResult
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
+
 from app.schemas.task import TaskRequest, TaskResponse, TaskStatusResponse
 from app.tasks.laboratory_tasks import test_task
 from app.workers.celery_app import celery_app
-
 
 router = APIRouter(
     prefix="/tasks",

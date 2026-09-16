@@ -17,6 +17,7 @@ import json
 from io import BytesIO, StringIO
 from uuid import UUID
 
+from openpyxl import Workbook
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import (
@@ -25,8 +26,6 @@ from reportlab.platypus import (
     TableStyle,
 )
 from sqlalchemy.orm import Session
-
-from openpyxl import Workbook
 
 from app.models.biomedical_equipment import (
     BiomedicalEquipment,
@@ -68,9 +67,7 @@ class ExportService:
         query = self.db.query(model)
 
         if ids:
-            query = query.filter(
-                model.id.in_(ids)
-            )
+            query = query.filter(model.id.in_(ids))
 
         records = query.all()
 
@@ -113,9 +110,7 @@ class ExportService:
                 "status": record.status.value,
                 "collected_at": record.collected_at.isoformat(),
                 "received_at": (
-                    record.received_at.isoformat()
-                    if record.received_at
-                    else None
+                    record.received_at.isoformat() if record.received_at else None
                 ),
             }
 
@@ -124,9 +119,7 @@ class ExportService:
                 "id": str(record.id),
                 "sample_id": str(record.sample_id),
                 "equipment_id": (
-                    str(record.equipment_id)
-                    if record.equipment_id
-                    else None
+                    str(record.equipment_id) if record.equipment_id else None
                 ),
                 "test_name": record.test_name,
                 "result_value": record.result_value,
@@ -155,12 +148,8 @@ class ExportService:
             return {
                 "id": str(record.id),
                 "equipment_id": str(record.equipment_id),
-                "calibration_date": (
-                    record.calibration_date.isoformat()
-                ),
-                "next_calibration_date": (
-                    record.next_calibration_date.isoformat()
-                ),
+                "calibration_date": (record.calibration_date.isoformat()),
+                "next_calibration_date": (record.next_calibration_date.isoformat()),
                 "performed_by": record.performed_by,
                 "certificate_number": record.certificate_number,
                 "status": record.status.value,
@@ -168,9 +157,7 @@ class ExportService:
                 "created_at": record.created_at.isoformat(),
             }
 
-        raise ValueError(
-            f"Unsupported resource: {resource}"
-        )
+        raise ValueError(f"Unsupported resource: {resource}")
 
     # ======================================================
     # JSON
@@ -201,9 +188,7 @@ class ExportService:
 
         output = StringIO()
 
-        fieldnames = list(
-            records[0].keys()
-        )
+        fieldnames = list(records[0].keys())
 
         writer = csv.DictWriter(
             output,
@@ -214,9 +199,7 @@ class ExportService:
 
         writer.writerows(records)
 
-        return output.getvalue().encode(
-            "utf-8-sig"
-        )
+        return output.getvalue().encode("utf-8-sig")
 
     # ======================================================
     # Excel
@@ -233,42 +216,27 @@ class ExportService:
         worksheet.title = "MedLab Export"
 
         if records:
-            headers = list(
-                records[0].keys()
-            )
+            headers = list(records[0].keys())
 
             worksheet.append(headers)
 
             for record in records:
-                worksheet.append(
-                    [
-                        record.get(header)
-                        for header in headers
-                    ]
-                )
+                worksheet.append([record.get(header) for header in headers])
 
             for column in worksheet.columns:
                 max_length = 0
 
-                column_letter = (
-                    column[0].column_letter
-                )
+                column_letter = column[0].column_letter
 
                 for cell in column:
-                    value = (
-                        str(cell.value)
-                        if cell.value is not None
-                        else ""
-                    )
+                    value = str(cell.value) if cell.value is not None else ""
 
                     max_length = max(
                         max_length,
                         len(value),
                     )
 
-                worksheet.column_dimensions[
-                    column_letter
-                ].width = min(
+                worksheet.column_dimensions[column_letter].width = min(
                     max_length + 2,
                     50,
                 )
@@ -303,9 +271,7 @@ class ExportService:
             data = [["No records"]]
 
         else:
-            headers = list(
-                records[0].keys()
-            )
+            headers = list(records[0].keys())
 
             data = [headers]
 
@@ -313,10 +279,7 @@ class ExportService:
                 data.append(
                     [
                         str(
-                            record.get(header)
-                            if record.get(header)
-                            is not None
-                            else ""
+                            record.get(header) if record.get(header) is not None else ""
                         )
                         for header in headers
                     ]

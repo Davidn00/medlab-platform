@@ -7,15 +7,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.permissions import require_roles
 from app.db.session import get_db
-from app.models.patient import Patient
-from app.models.user import UserRole
+from app.models.user import User, UserRole
 from app.schemas.patient import PatientCreate, PatientResponse, PatientUpdate
 from app.services.patient_service import PatientService
-from app.api.deps import get_current_user
-from app.models.user import User
-
 
 router = APIRouter(
     prefix="/patients",
@@ -62,7 +59,7 @@ def create_patient(
 @router.get(
     "",
     response_model=list[PatientResponse],
-dependencies=[
+    dependencies=[
         Depends(
             require_roles(
                 [
@@ -138,7 +135,7 @@ def get_patient(
                 ]
             )
         )
-    ]
+    ],
 )
 def update_patient(
     patient_id: UUID,
@@ -168,7 +165,7 @@ def update_patient(
                 ]
             )
         )
-    ]
+    ],
 )
 def delete_patient(
     patient_id: UUID,

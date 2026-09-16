@@ -14,7 +14,6 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-
 # ==========================================================
 # Motor de conexión (Engine)
 # ==========================================================
@@ -24,7 +23,7 @@ from app.core.config import settings
 #
 engine = create_engine(
     settings.DATABASE_URL,
-    echo=True  # Muestra todas las consultas SQL en la terminal
+    echo=True,  # Muestra todas las consultas SQL en la terminal
 )
 
 
@@ -34,11 +33,7 @@ engine = create_engine(
 #
 # Cada operación sobre la base de datos utilizará una sesión.
 #
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 # ==========================================================

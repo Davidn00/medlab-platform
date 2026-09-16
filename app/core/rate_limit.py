@@ -8,7 +8,6 @@ from redis import Redis
 
 from app.core.config import settings
 
-
 logger = logging.getLogger("medlab.security")
 
 
@@ -49,9 +48,7 @@ def check_login_rate_limit(identifier: str) -> bool:
     except Exception:
         # Fail-open para no dejar fuera de servicio
         # toda la autenticación si Redis está caído.
-        logger.warning(
-            "Redis unavailable during login rate limiting"
-        )
+        logger.warning("Redis unavailable during login rate limiting")
 
         return True
 
@@ -64,11 +61,7 @@ def clear_login_rate_limit(identifier: str) -> None:
     try:
         redis = get_redis_client()
 
-        redis.delete(
-            f"medlab:login:attempts:{identifier}"
-        )
+        redis.delete(f"medlab:login:attempts:{identifier}")
 
     except Exception:
-        logger.warning(
-            "Unable to clear login rate limit"
-        )
+        logger.warning("Unable to clear login rate limit")

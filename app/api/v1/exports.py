@@ -26,7 +26,6 @@ from app.schemas.export import (
 )
 from app.services.export_service import ExportService
 
-
 router = APIRouter(
     prefix="/exports",
     tags=["Exports"],
@@ -42,22 +41,12 @@ EXPORT_ROLES = [
 
 @router.get(
     "/{resource}",
-    dependencies=[
-        Depends(
-            require_roles(
-                EXPORT_ROLES
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(EXPORT_ROLES))],
 )
 def export_resource(
     resource: ExportResource,
-    format: ExportFormat = Query(
-        default=ExportFormat.JSON
-    ),
-    ids: list[UUID] | None = Query(
-        default=None
-    ),
+    format: ExportFormat = Query(default=ExportFormat.JSON),
+    ids: list[UUID] | None = Query(default=None),
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
@@ -87,9 +76,7 @@ def export_resource(
             content=content,
             media_type="application/json",
             headers={
-                "Content-Disposition": (
-                    f'attachment; filename="{resource.value}.json"'
-                )
+                "Content-Disposition": (f'attachment; filename="{resource.value}.json"')
             },
         )
 
@@ -100,9 +87,7 @@ def export_resource(
             content=content,
             media_type="text/csv",
             headers={
-                "Content-Disposition": (
-                    f'attachment; filename="{resource.value}.csv"'
-                )
+                "Content-Disposition": (f'attachment; filename="{resource.value}.csv"')
             },
         )
 
@@ -112,13 +97,10 @@ def export_resource(
         return Response(
             content=content,
             media_type=(
-                "application/vnd.openxmlformats-"
-                "officedocument.spreadsheetml.sheet"
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             ),
             headers={
-                "Content-Disposition": (
-                    f'attachment; filename="{resource.value}.xlsx"'
-                )
+                "Content-Disposition": (f'attachment; filename="{resource.value}.xlsx"')
             },
         )
 
@@ -129,9 +111,7 @@ def export_resource(
             content=content,
             media_type="application/pdf",
             headers={
-                "Content-Disposition": (
-                    f'attachment; filename="{resource.value}.pdf"'
-                )
+                "Content-Disposition": (f'attachment; filename="{resource.value}.pdf"')
             },
         )
 

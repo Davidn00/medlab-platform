@@ -10,9 +10,10 @@ import uuid
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.metrics import (
-    HTTP_REQUESTS_TOTAL,
     HTTP_REQUEST_DURATION,
+    HTTP_REQUESTS_TOTAL,
 )
 
 logger = logging.getLogger("medlab.http")
@@ -47,7 +48,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
 
             duration = time.perf_counter() - start_time
-            
+
             HTTP_REQUESTS_TOTAL.labels(
                 method=request.method,
                 path=request.url.path,
@@ -77,8 +78,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             duration = time.perf_counter() - start_time
 
             logger.exception(
-                "HTTP request failed | "
-                "request_id=%s method=%s path=%s duration=%.4fs",
+                "HTTP request failed | request_id=%s method=%s path=%s duration=%.4fs",
                 request_id,
                 request.method,
                 request.url.path,

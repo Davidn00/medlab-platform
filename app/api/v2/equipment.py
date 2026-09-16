@@ -1,4 +1,3 @@
-
 """
 Endpoints v2 para equipos biomédicos.
 
@@ -21,7 +20,6 @@ from fastapi import (
     Depends,
     Query,
 )
-
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -41,7 +39,6 @@ from app.schemas.pagination import (
     PaginatedResponse,
 )
 
-
 router = APIRouter(
     prefix="/equipment",
     tags=["Biomedical Equipment v2"],
@@ -50,9 +47,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=PaginatedResponse[
-        BiomedicalEquipmentResponse
-    ],
+    response_model=PaginatedResponse[BiomedicalEquipmentResponse],
     dependencies=[
         Depends(
             require_roles(
@@ -127,4 +122,3 @@ def list_equipment_v2(
             limit,
         ),
     }
-

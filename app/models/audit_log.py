@@ -8,10 +8,11 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,7 +20,7 @@ from app.db.base import Base
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class AuditAction(str, Enum):

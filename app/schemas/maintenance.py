@@ -17,7 +17,6 @@ from app.models.maintenance import (
 
 
 class MaintenanceBase(BaseModel):
-
     equipment_id: UUID
 
     title: str = Field(
@@ -28,9 +27,7 @@ class MaintenanceBase(BaseModel):
 
     maintenance_type: MaintenanceType
 
-    status: MaintenanceStatus = (
-        MaintenanceStatus.SCHEDULED
-    )
+    status: MaintenanceStatus = MaintenanceStatus.SCHEDULED
 
     scheduled_date: datetime | None = None
 
@@ -47,7 +44,6 @@ class MaintenanceCreate(MaintenanceBase):
 
 
 class MaintenanceUpdate(BaseModel):
-
     title: str | None = Field(
         default=None,
         min_length=1,
@@ -73,7 +69,6 @@ class MaintenanceUpdate(BaseModel):
 
 
 class MaintenanceResponse(MaintenanceBase):
-
     id: UUID
 
     started_at: datetime | None

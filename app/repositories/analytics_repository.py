@@ -8,7 +8,7 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import date, datetime, time, timezone
+from datetime import UTC, date, datetime, time
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -45,13 +45,13 @@ class AnalyticsRepository:
         start = datetime.combine(
             start_date,
             time.min,
-            tzinfo=timezone.utc,
+            tzinfo=UTC,
         )
 
         end = datetime.combine(
             end_date,
             time.max,
-            tzinfo=timezone.utc,
+            tzinfo=UTC,
         )
 
         return start, end
@@ -73,33 +73,18 @@ class AnalyticsRepository:
 
         statement = (
             select(
-                func.date(
-                    LaboratoryTest.created_at
-                ),
+                func.date(LaboratoryTest.created_at),
                 func.count(),
             )
             .where(
                 LaboratoryTest.created_at >= start,
                 LaboratoryTest.created_at <= end,
             )
-            .group_by(
-                func.date(
-                    LaboratoryTest.created_at
-                )
-            )
-            .order_by(
-                func.date(
-                    LaboratoryTest.created_at
-                )
-            )
+            .group_by(func.date(LaboratoryTest.created_at))
+            .order_by(func.date(LaboratoryTest.created_at))
         )
 
-        return {
-            row[0]: int(row[1])
-            for row in self.db.execute(
-                statement
-            ).all()
-        }
+        return {row[0]: int(row[1]) for row in self.db.execute(statement).all()}
 
     # ======================================================
     # Samples / day
@@ -118,33 +103,18 @@ class AnalyticsRepository:
 
         statement = (
             select(
-                func.date(
-                    Sample.collected_at
-                ),
+                func.date(Sample.collected_at),
                 func.count(),
             )
             .where(
                 Sample.collected_at >= start,
                 Sample.collected_at <= end,
             )
-            .group_by(
-                func.date(
-                    Sample.collected_at
-                )
-            )
-            .order_by(
-                func.date(
-                    Sample.collected_at
-                )
-            )
+            .group_by(func.date(Sample.collected_at))
+            .order_by(func.date(Sample.collected_at))
         )
 
-        return {
-            row[0]: int(row[1])
-            for row in self.db.execute(
-                statement
-            ).all()
-        }
+        return {row[0]: int(row[1]) for row in self.db.execute(statement).all()}
 
     # ======================================================
     # Equipment utilization
@@ -163,50 +133,23 @@ class AnalyticsRepository:
 
         total_statement = (
             select(func.count())
-            .select_from(
-                BiomedicalEquipment
-            )
-            .where(
-                BiomedicalEquipment.status
-                != EquipmentStatus.RETIRED
-            )
+            .select_from(BiomedicalEquipment)
+            .where(BiomedicalEquipment.status != EquipmentStatus.RETIRED)
         )
 
-        total = int(
-            self.db.scalar(
-                total_statement
-            )
-            or 0
+        total = int(self.db.scalar(total_statement) or 0)
+
+        utilized_statement = select(
+            func.count(func.distinct(LaboratoryTest.equipment_id))
+        ).where(
+            LaboratoryTest.equipment_id.is_not(None),
+            LaboratoryTest.created_at >= start,
+            LaboratoryTest.created_at <= end,
         )
 
-        utilized_statement = (
-            select(
-                func.count(
-                    func.distinct(
-                        LaboratoryTest.equipment_id
-                    )
-                )
-            )
-            .where(
-                LaboratoryTest.equipment_id
-                .is_not(None),
-                LaboratoryTest.created_at >= start,
-                LaboratoryTest.created_at <= end,
-            )
-        )
+        utilized = int(self.db.scalar(utilized_statement) or 0)
 
-        utilized = int(
-            self.db.scalar(
-                utilized_statement
-            )
-            or 0
-        )
-
-        rate = (
-            (utilized / total) * 100
-            if total
-            else 0.0
-        )
+        rate = (utilized / total) * 100 if total else 0.0
 
         return {
             "total_equipment": total,
@@ -223,44 +166,24 @@ class AnalyticsRepository:
 
     def calibration_compliance(self) -> dict:
 
-        now = datetime.now(
-            timezone.utc
+        now = datetime.now(UTC)
+
+        equipment_statement = select(BiomedicalEquipment.id).where(
+            BiomedicalEquipment.status != EquipmentStatus.RETIRED
         )
 
-        equipment_statement = (
-            select(
-                BiomedicalEquipment.id
-            )
-            .where(
-                BiomedicalEquipment.status
-                != EquipmentStatus.RETIRED
-            )
-        )
+        equipment_ids = list(self.db.scalars(equipment_statement).all())
 
-        equipment_ids = list(
-            self.db.scalars(
-                equipment_statement
-            ).all()
-        )
-
-        total_equipment = len(
-            equipment_ids
-        )
+        total_equipment = len(equipment_ids)
 
         calibrated = 0
         compliant = 0
 
         for equipment_id in equipment_ids:
-
             calibration = (
                 self.db.query(Calibration)
-                .filter(
-                    Calibration.equipment_id
-                    == equipment_id
-                )
-                .order_by(
-                    Calibration.next_calibration_date.desc()
-                )
+                .filter(Calibration.equipment_id == equipment_id)
+                .order_by(Calibration.next_calibration_date.desc())
                 .first()
             )
 
@@ -269,17 +192,10 @@ class AnalyticsRepository:
 
             calibrated += 1
 
-            if (
-                calibration.next_calibration_date
-                >= now
-            ):
+            if calibration.next_calibration_date >= now:
                 compliant += 1
 
-        rate = (
-            (compliant / calibrated) * 100
-            if calibrated
-            else 0.0
-        )
+        rate = (compliant / calibrated) * 100 if calibrated else 0.0
 
         return {
             "total_equipment": total_equipment,
@@ -308,20 +224,12 @@ class AnalyticsRepository:
 
         statement = (
             select(func.count())
-            .select_from(
-                LaboratoryTest
-            )
+            .select_from(LaboratoryTest)
             .where(
-                LaboratoryTest.status
-                == LabTestStatus.CANCELLED,
+                LaboratoryTest.status == LabTestStatus.CANCELLED,
                 LaboratoryTest.created_at >= start,
                 LaboratoryTest.created_at <= end,
             )
         )
 
-        return int(
-            self.db.scalar(
-                statement
-            )
-            or 0
-        )
+        return int(self.db.scalar(statement) or 0)

@@ -3,6 +3,7 @@ Router principal de la API v2.
 """
 
 from fastapi import APIRouter
+
 from app.api.v2 import (
     calibrations,
     equipment,
@@ -13,7 +14,6 @@ from app.api.v2 import (
     patients,
     samples,
 )
-
 
 router = APIRouter(
     prefix="/api/v2",
@@ -50,6 +50,7 @@ router.include_router(
     maintenance.router,
 )
 
+
 @router.get(
     "/version",
     tags=["API"],
@@ -59,4 +60,3 @@ def api_version():
         "api_version": "v2",
         "status": "available",
     }
-

@@ -7,17 +7,15 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.laboratory_test import LaboratoryTest,LabTestStatus
+from app.models.audit_log import AuditAction
+from app.models.laboratory_test import LaboratoryTest, LabTestStatus
 from app.repositories.laboratory_test_repository import LaboratoryTestRepository
 from app.repositories.sample_repository import SampleRepository
 from app.schemas.laboratory_test import LaboratoryTestCreate, LaboratoryTestUpdate
-from app.models.audit_log import AuditAction
 from app.services.audit_service import AuditService
 
 
-
 class LaboratoryTestService:
-
     def __init__(self, db: Session):
         self.repository = LaboratoryTestRepository(db)
         self.sample_repository = SampleRepository(db)
@@ -32,9 +30,7 @@ class LaboratoryTestService:
         Registra una nueva prueba para una muestra.
         """
 
-        sample = self.sample_repository.get_by_id(
-            test_data.sample_id
-        )
+        sample = self.sample_repository.get_by_id(test_data.sample_id)
 
         if sample is None:
             raise HTTPException(
@@ -59,7 +55,6 @@ class LaboratoryTestService:
             description=f"Test {test.test_name} created",
         )
         return test
-  
 
     def get_test(
         self,
@@ -87,7 +82,7 @@ class LaboratoryTestService:
         self,
         test_id: UUID,
         test_data: LaboratoryTestUpdate,
-         user_id: UUID,
+        user_id: UUID,
     ) -> LaboratoryTest:
         """
         Actualiza una prueba.
@@ -98,14 +93,9 @@ class LaboratoryTestService:
 
         test = self.get_test(test_id)
 
-        update_data = test_data.model_dump(
-            exclude_unset=True
-        )
+        update_data = test_data.model_dump(exclude_unset=True)
 
-        if (
-            "result_value" in update_data
-            and test.status == LabTestStatus.PENDING
-        ):
+        if "result_value" in update_data and test.status == LabTestStatus.PENDING:
             update_data["status"] = LabTestStatus.COMPLETED
 
         for field, value in update_data.items():
@@ -127,7 +117,6 @@ class LaboratoryTestService:
             description=f"Test {test.test_name} updated",
         )
         return test
-        
 
     def delete_test(
         self,

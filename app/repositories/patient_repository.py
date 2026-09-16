@@ -44,9 +44,7 @@ class PatientRepository:
         Busca un paciente mediante su UUID.
         """
 
-        statement = select(Patient).where(
-            Patient.id == patient_id
-        )
+        statement = select(Patient).where(Patient.id == patient_id)
 
         return self.db.scalar(statement)
 
@@ -58,9 +56,7 @@ class PatientRepository:
         Busca un paciente mediante su expediente médico.
         """
 
-        statement = select(Patient).where(
-            Patient.medical_record == medical_record
-        )
+        statement = select(Patient).where(Patient.medical_record == medical_record)
 
         return self.db.scalar(statement)
 
@@ -140,19 +136,13 @@ class PatientRepository:
             )
 
         if gender:
-            filters.append(
-                Patient.gender == gender
-            )
+            filters.append(Patient.gender == gender)
 
         if birth_date_from:
-            filters.append(
-                Patient.birth_date >= birth_date_from
-            )
+            filters.append(Patient.birth_date >= birth_date_from)
 
         if birth_date_to:
-            filters.append(
-                Patient.birth_date <= birth_date_to
-            )
+            filters.append(Patient.birth_date <= birth_date_to)
 
         columns = {
             "created_at": Patient.created_at,
@@ -164,40 +154,21 @@ class PatientRepository:
 
         column = columns[sort_by]
 
-        ordering = (
-            column.asc()
-            if sort_order == "asc"
-            else column.desc()
-        )
+        ordering = column.asc() if sort_order == "asc" else column.desc()
 
-        base = (
-            select(Patient)
-            .where(*filters)
-        )
+        base = select(Patient).where(*filters)
 
-        count_statement = (
-            select(func.count())
-            .select_from(Patient)
-            .where(*filters)
-        )
+        count_statement = select(func.count()).select_from(Patient).where(*filters)
 
-        total = int(
-            self.db.scalar(
-                count_statement
-            )
-            or 0
-        )
+        total = int(self.db.scalar(count_statement) or 0)
 
         items = list(
             self.db.scalars(
-                base
-                .order_by(
+                base.order_by(
                     ordering,
                     Patient.id,
                 )
-                .offset(
-                    (page - 1) * limit
-                )
+                .offset((page - 1) * limit)
                 .limit(limit)
             ).all()
         )

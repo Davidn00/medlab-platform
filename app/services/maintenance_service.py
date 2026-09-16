@@ -5,7 +5,7 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -40,7 +40,6 @@ from app.services.audit_service import AuditService
 
 
 class MaintenanceService:
-
     def __init__(
         self,
         db: Session,
@@ -50,16 +49,10 @@ class MaintenanceService:
         lifecycle_repository: EquipmentLifecycleRepository,
     ):
         self.db = db
-        self.maintenance_repository = (
-            maintenance_repository
-        )
+        self.maintenance_repository = maintenance_repository
         self.record_repository = record_repository
-        self.equipment_repository = (
-            equipment_repository
-        )
-        self.lifecycle_repository = (
-            lifecycle_repository
-        )
+        self.equipment_repository = equipment_repository
+        self.lifecycle_repository = lifecycle_repository
         self.audit_service = AuditService(db)
 
     def create(
@@ -74,16 +67,10 @@ class MaintenanceService:
         user_id: UUID | None,
     ) -> Maintenance:
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
         try:
             maintenance = Maintenance(
@@ -97,50 +84,31 @@ class MaintenanceService:
                 created_by=user_id,
             )
 
-            self.maintenance_repository.create(
-                maintenance
-            )
+            self.maintenance_repository.create(maintenance)
 
             if status == MaintenanceStatus.IN_PROGRESS:
-
                 previous_status = equipment.status
 
-                equipment.status = (
-                    EquipmentStatus.MAINTENANCE
+                equipment.status = EquipmentStatus.MAINTENANCE
+
+                equipment_event = EquipmentLifecycleEvent(
+                    equipment_id=equipment_id,
+                    event_type=(EquipmentEventType.MAINTENANCE),
+                    description=("Equipo puesto en mantenimiento."),
+                    performed_by=assigned_to,
+                    reference_id=maintenance.id,
+                    previous_status=(previous_status.value),
+                    new_status=(EquipmentStatus.MAINTENANCE.value),
                 )
 
-                equipment_event = (
-                    EquipmentLifecycleEvent(
-                        equipment_id=equipment_id,
-                        event_type=(
-                            EquipmentEventType.MAINTENANCE
-                        ),
-                        description=(
-                            "Equipo puesto en mantenimiento."
-                        ),
-                        performed_by=assigned_to,
-                        reference_id=maintenance.id,
-                        previous_status=(
-                            previous_status.value
-                        ),
-                        new_status=(
-                            EquipmentStatus.MAINTENANCE.value
-                        ),
-                    )
-                )
-
-                self.lifecycle_repository.create(
-                    equipment_event
-                )
+                self.lifecycle_repository.create(equipment_event)
 
             self.audit_service.log(
                 user_id=user_id,
                 entity_name="Maintenance",
                 entity_id=str(maintenance.id),
                 action=AuditAction.CREATE,
-                description=(
-                    f"Mantenimiento creado: {title}."
-                ),
+                description=(f"Mantenimiento creado: {title}."),
             )
 
             self.db.commit()
@@ -157,30 +125,19 @@ class MaintenanceService:
         maintenance_id: UUID,
     ) -> Maintenance | None:
 
-        return self.maintenance_repository.get_by_id(
-            maintenance_id
-        )
+        return self.maintenance_repository.get_by_id(maintenance_id)
 
     def get_by_equipment_id(
         self,
         equipment_id: UUID,
     ) -> list[Maintenance]:
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-        return (
-            self.maintenance_repository
-            .get_by_equipment_id(equipment_id)
-        )
+        return self.maintenance_repository.get_by_equipment_id(equipment_id)
 
     def get_all(self) -> list[Maintenance]:
 
@@ -193,53 +150,33 @@ class MaintenanceService:
         user_id: UUID | None,
     ) -> Maintenance | None:
 
-        maintenance = (
-            self.maintenance_repository.get_by_id(
-                maintenance_id
-            )
-        )
+        maintenance = self.maintenance_repository.get_by_id(maintenance_id)
 
         if maintenance is None:
             return None
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                maintenance.equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(maintenance.equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-        old_status = MaintenanceStatus(
-            maintenance.status
-        )
+        old_status = MaintenanceStatus(maintenance.status)
 
         try:
             maintenance.status = new_status
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             if new_status == MaintenanceStatus.IN_PROGRESS:
-
                 maintenance.started_at = now
-                equipment.status = (
-                    EquipmentStatus.MAINTENANCE
-                )
+                equipment.status = EquipmentStatus.MAINTENANCE
 
             elif new_status == MaintenanceStatus.COMPLETED:
-
                 maintenance.completed_at = now
 
-                equipment.status = (
-                    EquipmentStatus.ACTIVE
-                )
+                equipment.status = EquipmentStatus.ACTIVE
 
-            self.maintenance_repository.update(
-                maintenance
-            )
+            self.maintenance_repository.update(maintenance)
 
             self.audit_service.log(
                 user_id=user_id,
@@ -247,9 +184,7 @@ class MaintenanceService:
                 entity_id=str(maintenance.id),
                 action=AuditAction.STATUS_CHANGED,
                 description=(
-                    f"Estado cambiado de "
-                    f"{old_status.value} a "
-                    f"{new_status.value}."
+                    f"Estado cambiado de {old_status.value} a {new_status.value}."
                 ),
             )
 
@@ -275,22 +210,13 @@ class MaintenanceService:
         user_id: UUID | None,
     ) -> MaintenanceRecord:
 
-        maintenance = (
-            self.maintenance_repository.get_by_id(
-                maintenance_id
-            )
-        )
+        maintenance = self.maintenance_repository.get_by_id(maintenance_id)
 
         if maintenance is None:
-            raise ValueError(
-                "Mantenimiento no encontrado."
-            )
+            raise ValueError("Mantenimiento no encontrado.")
 
         if maintenance.equipment_id != equipment_id:
-            raise ValueError(
-                "El mantenimiento no pertenece "
-                "al equipo indicado."
-            )
+            raise ValueError("El mantenimiento no pertenece al equipo indicado.")
 
         try:
             record = MaintenanceRecord(
@@ -311,9 +237,7 @@ class MaintenanceService:
                 entity_name="MaintenanceRecord",
                 entity_id=str(record.id),
                 action=AuditAction.CREATE,
-                description=(
-                    "Registro de mantenimiento creado."
-                ),
+                description=("Registro de mantenimiento creado."),
             )
 
             self.db.commit()

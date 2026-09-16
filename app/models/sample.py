@@ -8,18 +8,24 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 
+if TYPE_CHECKING:
+    from app.models.laboratory_test import LaboratoryTest
+    from app.models.patient import Patient
+
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class SampleType(str, Enum):
@@ -110,13 +116,8 @@ class Sample(Base):
     # Relaciones
     # ------------------------------------------------------
 
-    patient: Mapped["Patient"] = relationship(
-        back_populates="samples"
-    )
+    patient: Mapped["Patient"] = relationship(back_populates="samples")
 
     laboratory_tests: Mapped[list["LaboratoryTest"]] = relationship(
-        "LaboratoryTest",
-        back_populates="sample",
-        cascade="all, delete-orphan"
+        "LaboratoryTest", back_populates="sample", cascade="all, delete-orphan"
     )
-    

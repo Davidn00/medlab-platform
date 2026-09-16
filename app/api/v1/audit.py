@@ -10,7 +10,6 @@ from app.db.session import get_db
 from app.models.user import UserRole
 from app.services.audit_service import AuditService
 
-
 router = APIRouter(
     prefix="/audit",
     tags=["Audit"],
@@ -48,11 +47,7 @@ def get_audit_logs(
     return [
         {
             "id": str(log.id),
-            "user_id": (
-                str(log.user_id)
-                if log.user_id
-                else None
-            ),
+            "user_id": (str(log.user_id) if log.user_id else None),
             "entity_name": log.entity_name,
             "entity_id": log.entity_id,
             "action": log.action.value,

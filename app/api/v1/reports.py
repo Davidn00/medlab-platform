@@ -8,21 +8,18 @@ Proyecto: MedLab Platform
 from uuid import UUID
 
 from celery.result import AsyncResult
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import Response
-
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.permissions import require_roles
-from app.models.user import UserRole
+from app.db.session import get_db
+from app.models.user import User, UserRole
 from app.schemas.task import TaskResponse, TaskStatusResponse
+from app.services.report_service import ReportService
 from app.tasks.report_tasks import generate_report
 from app.workers.celery_app import celery_app
-from app.api.deps import get_current_user
-from app.db.session import get_db
-from app.models.user import User
-from app.services.report_service import ReportService
-
 
 router = APIRouter(
     prefix="/reports",
@@ -41,9 +38,7 @@ REPORT_ROLES = [
     "/sample/{sample_id}",
     response_model=TaskResponse,
     status_code=status.HTTP_202_ACCEPTED,
-    dependencies=[
-        Depends(require_roles(REPORT_ROLES))
-    ],
+    dependencies=[Depends(require_roles(REPORT_ROLES))],
 )
 def create_sample_report(
     sample_id: UUID,
@@ -65,9 +60,7 @@ def create_sample_report(
     "/tasks/{task_id}",
     response_model=TaskStatusResponse,
     status_code=status.HTTP_200_OK,
-    dependencies=[
-        Depends(require_roles(REPORT_ROLES))
-    ],
+    dependencies=[Depends(require_roles(REPORT_ROLES))],
 )
 def get_report_task_status(
     task_id: str,
@@ -94,12 +87,11 @@ def get_report_task_status(
 
     return response
 
+
 @router.get(
     "/sample/{sample_id}/pdf",
     status_code=status.HTTP_200_OK,
-    dependencies=[
-        Depends(require_roles(REPORT_ROLES))
-    ],
+    dependencies=[Depends(require_roles(REPORT_ROLES))],
 )
 def download_sample_report(
     sample_id: UUID,
@@ -113,16 +105,12 @@ def download_sample_report(
 
     service = ReportService(db)
 
-    pdf = service.generate_sample_report(
-        sample_id
-    )
+    pdf = service.generate_sample_report(sample_id)
 
     return Response(
         content=pdf,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": (
-                f'attachment; filename="sample_{sample_id}.pdf"'
-            )
+            "Content-Disposition": (f'attachment; filename="sample_{sample_id}.pdf"')
         },
     )

@@ -13,7 +13,6 @@ from fastapi import (
     Depends,
     Query,
 )
-
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -35,7 +34,6 @@ from app.schemas.pagination import (
 )
 from app.schemas.sample import SampleResponse
 
-
 router = APIRouter(
     prefix="/samples",
     tags=["Samples v2"],
@@ -44,9 +42,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=PaginatedResponse[
-        SampleResponse
-    ],
+    response_model=PaginatedResponse[SampleResponse],
     dependencies=[
         Depends(
             require_roles(

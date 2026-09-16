@@ -7,13 +7,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.core.permissions import require_roles
 from app.db.session import get_db
 from app.models.user import User, UserRole
 from app.schemas.sample import SampleCreate, SampleResponse, SampleUpdate
 from app.services.sample_service import SampleService
-from app.api.deps import get_current_user
-
 
 router = APIRouter(
     prefix="/samples",

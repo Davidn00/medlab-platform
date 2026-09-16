@@ -46,6 +46,4 @@ class AnalyticsResponse(BaseModel):
 
     calibration_compliance: CalibrationCompliance
 
-    failed_tests: int = Field(
-        ge=0
-    )
+    failed_tests: int = Field(ge=0)

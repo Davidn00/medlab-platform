@@ -8,20 +8,22 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
-from app.models.sample import Sample
 from app.models.biomedical_equipment import BiomedicalEquipment
+from app.models.sample import Sample
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
+
 
 class LabTestStatus(str, Enum):
     """

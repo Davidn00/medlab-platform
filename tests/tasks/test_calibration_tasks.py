@@ -1,11 +1,10 @@
 from unittest.mock import MagicMock, patch
 
-from app.services.audit_service import AuditService
-from app.tasks.calibration_tasks import check_calibration_status
-
 from app.models.audit_log import AuditAction
 from app.models.calibration import CalibrationStatus
 from app.services.calibration_service import CalibrationService
+from app.tasks.calibration_tasks import check_calibration_status
+
 
 def test_check_calibration_status():
 
@@ -17,20 +16,16 @@ def test_check_calibration_status():
         MagicMock(id="expiring-1"),
     ]
 
-    with patch(
-        "app.tasks.calibration_tasks.SessionLocal"
-    ) as session_local, patch(
-        "app.tasks.calibration_tasks.notify_calibration_expired"
-    ) as expired_notification, patch(
-        "app.tasks.calibration_tasks.notify_calibration_expiring"
-    ) as expiring_notification:
-
-        db = session_local.return_value
-
-        with patch(
-            "app.tasks.calibration_tasks.CalibrationService"
-        ) as service_class:
-
+    with (
+        patch("app.tasks.calibration_tasks.SessionLocal"),
+        patch(
+            "app.tasks.calibration_tasks.notify_calibration_expired"
+        ) as expired_notification,
+        patch(
+            "app.tasks.calibration_tasks.notify_calibration_expiring"
+        ) as expiring_notification,
+    ):
+        with patch("app.tasks.calibration_tasks.CalibrationService") as service_class:
             service = service_class.return_value
 
             service.get_expired_calibrations.return_value = expired
@@ -49,6 +44,7 @@ def test_check_calibration_status():
     assert result["expiring_calibration_ids"] == ["expiring-1"]
     expired_notification.delay.assert_called_once_with("expired-1")
     expiring_notification.delay.assert_called_once_with("expiring-1", 30)
+
 
 def test_expire_calibration_is_idempotent():
     calibration = MagicMock()
@@ -87,10 +83,7 @@ def test_expire_calibration_is_idempotent():
         entity_name="Calibration",
         entity_id="calibration-1",
         action=AuditAction.STATUS_CHANGED,
-        description=(
-            "Estado de calibración cambiado de "
-            "'valid' a 'expired'."
-        ),
+        description=("Estado de calibración cambiado de 'valid' a 'expired'."),
     )
 
     db.commit.assert_called_once()

@@ -15,7 +15,6 @@ from app.models.laboratory_test import LaboratoryTest
 
 
 class LaboratoryTestRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -37,9 +36,7 @@ class LaboratoryTestRepository:
         test_id: UUID,
     ) -> LaboratoryTest | None:
 
-        statement = select(LaboratoryTest).where(
-            LaboratoryTest.id == test_id
-        )
+        statement = select(LaboratoryTest).where(LaboratoryTest.id == test_id)
 
         return self.db.scalar(statement)
 
@@ -101,61 +98,37 @@ class LaboratoryTestRepository:
 
             filters.append(
                 or_(
-                    LaboratoryTest.test_name.ilike(
-                        pattern
-                    ),
-                    LaboratoryTest.result_value.ilike(
-                        pattern
-                    ),
+                    LaboratoryTest.test_name.ilike(pattern),
+                    LaboratoryTest.result_value.ilike(pattern),
                 )
             )
 
         if sample_id:
-            filters.append(
-                LaboratoryTest.sample_id == sample_id
-            )
+            filters.append(LaboratoryTest.sample_id == sample_id)
 
         if status:
-            filters.append(
-                LaboratoryTest.status == status
-            )
+            filters.append(LaboratoryTest.status == status)
 
         if created_from:
-            filters.append(
-                LaboratoryTest.created_at
-                >= created_from
-            )
+            filters.append(LaboratoryTest.created_at >= created_from)
 
         if created_to:
-            filters.append(
-                LaboratoryTest.created_at
-                <= created_to
-            )
+            filters.append(LaboratoryTest.created_at <= created_to)
 
         columns = {
-            "created_at":
-                LaboratoryTest.created_at,
-            "updated_at":
-                LaboratoryTest.updated_at,
-            "test_name":
-                LaboratoryTest.test_name,
-            "status":
-                LaboratoryTest.status,
+            "created_at": LaboratoryTest.created_at,
+            "updated_at": LaboratoryTest.updated_at,
+            "test_name": LaboratoryTest.test_name,
+            "status": LaboratoryTest.status,
         }
 
         column = columns[sort_by]
 
-        ordering = (
-            column.asc()
-            if sort_order == "asc"
-            else column.desc()
-        )
+        ordering = column.asc() if sort_order == "asc" else column.desc()
 
         total = int(
             self.db.scalar(
-                select(func.count())
-                .select_from(LaboratoryTest)
-                .where(*filters)
+                select(func.count()).select_from(LaboratoryTest).where(*filters)
             )
             or 0
         )
@@ -168,9 +141,7 @@ class LaboratoryTestRepository:
                     ordering,
                     LaboratoryTest.id,
                 )
-                .offset(
-                    (page - 1) * limit
-                )
+                .offset((page - 1) * limit)
                 .limit(limit)
             ).all()
         )

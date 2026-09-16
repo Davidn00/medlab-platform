@@ -22,7 +22,6 @@ from app.repositories.maintenance_schedule_repository import (
 
 
 class MaintenanceScheduleService:
-
     def __init__(
         self,
         db: Session,
@@ -43,16 +42,10 @@ class MaintenanceScheduleService:
         description,
     ):
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
         try:
             schedule = MaintenanceSchedule(
@@ -80,17 +73,9 @@ class MaintenanceScheduleService:
         equipment_id: UUID,
     ):
 
-        equipment = (
-            self.equipment_repository.get_by_id(
-                equipment_id
-            )
-        )
+        equipment = self.equipment_repository.get_by_id(equipment_id)
 
         if equipment is None:
-            raise EquipmentNotFoundError(
-                "Equipo biomédico no encontrado."
-            )
+            raise EquipmentNotFoundError("Equipo biomédico no encontrado.")
 
-        return self.repository.get_by_equipment_id(
-            equipment_id
-        )
+        return self.repository.get_by_equipment_id(equipment_id)

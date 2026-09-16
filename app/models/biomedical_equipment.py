@@ -6,7 +6,7 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 from sqlalchemy import DateTime, String
@@ -73,14 +73,14 @@ class BiomedicalEquipment(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     calibrations = relationship(
@@ -88,7 +88,7 @@ class BiomedicalEquipment(Base):
         back_populates="equipment",
         cascade="all, delete-orphan",
     )
-    
+
     laboratory_tests = relationship(
         "LaboratoryTest",
         back_populates="equipment",

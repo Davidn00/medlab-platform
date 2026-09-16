@@ -4,8 +4,6 @@ Pruebas del ciclo de vida de equipos.
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime
-
 
 def admin_headers(client):
 
@@ -19,10 +17,7 @@ def admin_headers(client):
 
     assert response.status_code == 200
 
-    return {
-        "Authorization":
-            f"Bearer {response.json()['access_token']}"
-    }
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
 def create_equipment(client):
@@ -102,9 +97,7 @@ def test_equipment_lifecycle_event(
         f"/api/v2/equipment/{equipment_id}/lifecycle-events",
         json={
             "event_type": "VALIDATION",
-            "description": (
-                "Validación funcional completada."
-            ),
+            "description": ("Validación funcional completada."),
             "performed_by": "Técnico MedLab",
         },
         headers=admin_headers(client),

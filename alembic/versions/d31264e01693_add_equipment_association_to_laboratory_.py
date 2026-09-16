@@ -5,14 +5,15 @@ Revises: 7e31cdc60bb0
 Create Date: 2026-09-15 17:36:42.732098
 
 """
-from typing import Sequence, Union
 
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
 
+from alembic import op
 
 revision: str = "d31264e01693"
-down_revision: Union[str, Sequence[str], None] = "7e31cdc60bb0"
+down_revision: str | Sequence[str] | None = "7e31cdc60bb0"
 branch_labels = None
 depends_on = None
 

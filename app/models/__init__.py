@@ -1,7 +1,3 @@
-from app.models.user import User
-from app.models.patient import Patient
-from app.models.sample import Sample
-from app.models.laboratory_test import LaboratoryTest
 from app.models.audit_log import AuditLog
 from app.models.biomedical_equipment import (
     BiomedicalEquipment,
@@ -9,9 +5,10 @@ from app.models.biomedical_equipment import (
 )
 from app.models.calibration import Calibration
 from app.models.equipment_lifecycle_event import (
-    EquipmentLifecycleEvent,
     EquipmentEventType,
+    EquipmentLifecycleEvent,
 )
+from app.models.laboratory_test import LaboratoryTest
 from app.models.maintenance import (
     Maintenance,
     MaintenanceStatus,
@@ -19,7 +16,9 @@ from app.models.maintenance import (
 )
 from app.models.maintenance_record import MaintenanceRecord
 from app.models.maintenance_schedule import MaintenanceSchedule
-
+from app.models.patient import Patient
+from app.models.sample import Sample
+from app.models.user import User
 
 __all__ = [
     "User",

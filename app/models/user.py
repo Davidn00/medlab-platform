@@ -6,24 +6,22 @@ Este módulo contiene la representación SQLAlchemy de la tabla
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, DateTime, Enum as SQLEnum, String
+from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
-
-from datetime import datetime, timezone
-
 
 
 def utc_now() -> datetime:
     """
     Devuelve la fecha y hora actual en UTC.
     """
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class UserRole(str, Enum):
@@ -90,4 +88,3 @@ class User(Base):
         default=utc_now,
         onupdate=utc_now,
     )
-

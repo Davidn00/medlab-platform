@@ -8,7 +8,6 @@ Proyecto: MedLab Platform
 
 from uuid import UUID
 
-from app.workers.celery_app import celery_app
 from app.tasks.retry import (
     TASK_RETRY_BACKOFF,
     TASK_RETRY_BACKOFF_MAX,
@@ -16,6 +15,8 @@ from app.tasks.retry import (
     TASK_RETRY_KWARGS,
     TRANSIENT_TASK_ERRORS,
 )
+from app.workers.celery_app import celery_app
+
 
 @celery_app.task(
     bind=True,

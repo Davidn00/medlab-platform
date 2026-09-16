@@ -30,9 +30,7 @@ def create_patient(client, token):
 
     response = client.post(
         "/api/v1/patients",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "first_name": "Paciente",
             "last_name": "LaboratoryTest",
@@ -58,9 +56,7 @@ def create_sample(client, token):
 
     response = client.post(
         "/api/v1/samples",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "patient_id": patient_id,
             "sample_type": "blood",
@@ -92,9 +88,7 @@ def test_create_laboratory_test(client):
 
     response = client.post(
         "/api/v1/laboratory-tests",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json=test_data,
     )
 
@@ -140,9 +134,7 @@ def test_create_laboratory_test_missing_required_fields(client):
 
     response = client.post(
         "/api/v1/laboratory-tests",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "test_name": "Hemoglobina",
         },
@@ -163,9 +155,7 @@ def test_create_laboratory_test_invalid_name(client):
 
     response = client.post(
         "/api/v1/laboratory-tests",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "sample_id": sample_id,
             "test_name": "A",
@@ -189,9 +179,7 @@ def test_get_laboratory_test(client):
 
     create_response = client.post(
         "/api/v1/laboratory-tests",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "sample_id": sample_id,
             "test_name": "Glucosa",
@@ -206,9 +194,7 @@ def test_get_laboratory_test(client):
 
     response = client.get(
         f"/api/v1/laboratory-tests/{test_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
@@ -232,9 +218,7 @@ def test_get_laboratory_tests_by_sample(client):
 
     create_response = client.post(
         "/api/v1/laboratory-tests",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
         json={
             "sample_id": sample_id,
             "test_name": "Colesterol",
@@ -249,9 +233,7 @@ def test_get_laboratory_tests_by_sample(client):
 
     response = client.get(
         f"/api/v1/laboratory-tests/sample/{sample_id}",
-        headers={
-            "Authorization": f"Bearer {token}"
-        },
+        headers={"Authorization": f"Bearer {token}"},
     )
 
     assert response.status_code == 200
@@ -260,7 +242,4 @@ def test_get_laboratory_tests_by_sample(client):
 
     assert isinstance(data, list)
 
-    assert any(
-        laboratory_test["id"] == test_id
-        for laboratory_test in data
-    )
+    assert any(laboratory_test["id"] == test_id for laboratory_test in data)

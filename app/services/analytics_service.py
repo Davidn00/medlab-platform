@@ -15,7 +15,6 @@ from app.repositories.analytics_repository import (
 
 
 class AnalyticsService:
-
     def __init__(self, db: Session):
         self.repository = AnalyticsRepository(db)
 
@@ -31,7 +30,6 @@ class AnalyticsService:
         current = start_date
 
         while current <= end_date:
-
             result.append(
                 {
                     "date": current,
@@ -42,9 +40,7 @@ class AnalyticsService:
                 }
             )
 
-            current += timedelta(
-                days=1
-            )
+            current += timedelta(days=1)
 
         return result
 
@@ -54,26 +50,19 @@ class AnalyticsService:
         end_date: date,
     ) -> dict:
 
-        tests = (
-            self.repository
-            .tests_per_day(
-                start_date,
-                end_date,
-            )
+        tests = self.repository.tests_per_day(
+            start_date,
+            end_date,
         )
 
-        samples = (
-            self.repository
-            .samples_per_day(
-                start_date,
-                end_date,
-            )
+        samples = self.repository.samples_per_day(
+            start_date,
+            end_date,
         )
 
         return {
             "period_start": start_date,
             "period_end": end_date,
-
             "tests_per_day": (
                 self._build_daily_series(
                     start_date,
@@ -81,7 +70,6 @@ class AnalyticsService:
                     tests,
                 )
             ),
-
             "samples_per_day": (
                 self._build_daily_series(
                     start_date,
@@ -89,23 +77,15 @@ class AnalyticsService:
                     samples,
                 )
             ),
-
             "equipment_utilization": (
-                self.repository
-                .equipment_utilization(
+                self.repository.equipment_utilization(
                     start_date,
                     end_date,
                 )
             ),
-
-            "calibration_compliance": (
-                self.repository
-                .calibration_compliance()
-            ),
-
+            "calibration_compliance": (self.repository.calibration_compliance()),
             "failed_tests": (
-                self.repository
-                .failed_tests(
+                self.repository.failed_tests(
                     start_date,
                     end_date,
                 )

@@ -15,7 +15,6 @@ from app.models.maintenance_schedule import (
 
 
 class MaintenanceScheduleRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -37,9 +36,7 @@ class MaintenanceScheduleRepository:
 
         return (
             self.db.query(MaintenanceSchedule)
-            .filter(
-                MaintenanceSchedule.id == schedule_id
-            )
+            .filter(MaintenanceSchedule.id == schedule_id)
             .first()
         )
 
@@ -50,13 +47,8 @@ class MaintenanceScheduleRepository:
 
         return (
             self.db.query(MaintenanceSchedule)
-            .filter(
-                MaintenanceSchedule.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                MaintenanceSchedule.next_due_date.asc()
-            )
+            .filter(MaintenanceSchedule.equipment_id == equipment_id)
+            .order_by(MaintenanceSchedule.next_due_date.asc())
             .all()
         )
 
@@ -69,12 +61,9 @@ class MaintenanceScheduleRepository:
             self.db.query(MaintenanceSchedule)
             .filter(
                 MaintenanceSchedule.is_active.is_(True),
-                MaintenanceSchedule.next_due_date
-                <= current_date,
+                MaintenanceSchedule.next_due_date <= current_date,
             )
-            .order_by(
-                MaintenanceSchedule.next_due_date.asc()
-            )
+            .order_by(MaintenanceSchedule.next_due_date.asc())
             .all()
         )
 

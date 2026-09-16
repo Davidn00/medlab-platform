@@ -11,7 +11,6 @@ from app.repositories.audit_repository import AuditRepository
 
 
 class AuditService:
-
     def __init__(self, db: Session):
         self.repository = AuditRepository(db)
 

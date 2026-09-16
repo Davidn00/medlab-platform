@@ -35,9 +35,7 @@ class CalibrationRepository:
         calibration_id: UUID,
     ) -> Calibration | None:
         return (
-            self.db.query(Calibration)
-            .filter(Calibration.id == calibration_id)
-            .first()
+            self.db.query(Calibration).filter(Calibration.id == calibration_id).first()
         )
 
     def get_all(
@@ -144,88 +142,58 @@ class CalibrationRepository:
         rangos de fechas, sorting y paginación.
         """
 
-        query = self.db.query(
-            Calibration
-        )
+        query = self.db.query(Calibration)
 
         if status:
-            query = query.filter(
-                Calibration.status == status
-            )
+            query = query.filter(Calibration.status == status)
 
         if equipment_id:
-            query = query.filter(
-                Calibration.equipment_id
-                == equipment_id
-            )
+            query = query.filter(Calibration.equipment_id == equipment_id)
 
         if search:
-            query = query.filter(
-                Calibration.performed_by.ilike(
-                    f"%{search.strip()}%"
-                )
-            )
+            query = query.filter(Calibration.performed_by.ilike(f"%{search.strip()}%"))
 
         if calibration_from:
-            query = query.filter(
-                Calibration.calibration_date
-                >= calibration_from
-            )
+            query = query.filter(Calibration.calibration_date >= calibration_from)
 
         if calibration_to:
-            query = query.filter(
-                Calibration.calibration_date
-                <= calibration_to
-            )
+            query = query.filter(Calibration.calibration_date <= calibration_to)
 
         if next_calibration_from:
             query = query.filter(
-                Calibration.next_calibration_date
-                >= next_calibration_from
+                Calibration.next_calibration_date >= next_calibration_from
             )
 
         if next_calibration_to:
             query = query.filter(
-                Calibration.next_calibration_date
-                <= next_calibration_to
+                Calibration.next_calibration_date <= next_calibration_to
             )
 
         columns = {
-            "calibration_date":
-                Calibration.calibration_date,
-            "next_calibration_date":
-                Calibration.next_calibration_date,
-            "created_at":
-                Calibration.created_at,
-            "status":
-                Calibration.status,
+            "calibration_date": Calibration.calibration_date,
+            "next_calibration_date": Calibration.next_calibration_date,
+            "created_at": Calibration.created_at,
+            "status": Calibration.status,
         }
 
         column = columns[sort_by]
 
-        ordering = (
-            column.asc()
-            if sort_order == "asc"
-            else column.desc()
-        )
+        ordering = column.asc() if sort_order == "asc" else column.desc()
 
         total = query.count()
 
         items = (
-            query
-            .order_by(
+            query.order_by(
                 ordering,
                 Calibration.id,
             )
-            .offset(
-                (page - 1) * limit
-            )
+            .offset((page - 1) * limit)
             .limit(limit)
             .all()
         )
 
         return items, total
-    
+
     def get_last_by_equipment_id(
         self,
         equipment_id: UUID,
@@ -233,16 +201,11 @@ class CalibrationRepository:
 
         return (
             self.db.query(Calibration)
-            .filter(
-                Calibration.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                Calibration.calibration_date.desc()
-            )
+            .filter(Calibration.equipment_id == equipment_id)
+            .order_by(Calibration.calibration_date.desc())
             .first()
         )
-    
+
     def get_next_by_equipment_id(
         self,
         equipment_id: UUID,
@@ -250,12 +213,7 @@ class CalibrationRepository:
 
         return (
             self.db.query(Calibration)
-            .filter(
-                Calibration.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                Calibration.next_calibration_date.asc()
-            )
+            .filter(Calibration.equipment_id == equipment_id)
+            .order_by(Calibration.next_calibration_date.asc())
             .first()
         )

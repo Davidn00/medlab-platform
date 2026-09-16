@@ -21,9 +21,7 @@ class DashboardService:
         self,
         db: Session,
     ):
-        self.repository = (
-            DashboardRepository(db)
-        )
+        self.repository = DashboardRepository(db)
 
     def get_statistics(
         self,
@@ -32,7 +30,4 @@ class DashboardService:
         Obtiene las estadísticas generales.
         """
 
-        return (
-            self.repository
-            .get_statistics()
-        )
+        return self.repository.get_statistics()

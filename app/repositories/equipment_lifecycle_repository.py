@@ -15,7 +15,6 @@ from app.models.equipment_lifecycle_event import (
 
 
 class EquipmentLifecycleRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -37,12 +36,7 @@ class EquipmentLifecycleRepository:
 
         return (
             self.db.query(EquipmentLifecycleEvent)
-            .filter(
-                EquipmentLifecycleEvent.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                EquipmentLifecycleEvent.event_date.desc()
-            )
+            .filter(EquipmentLifecycleEvent.equipment_id == equipment_id)
+            .order_by(EquipmentLifecycleEvent.event_date.desc())
             .all()
         )

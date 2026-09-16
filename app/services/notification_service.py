@@ -5,7 +5,7 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -47,15 +47,10 @@ class NotificationService:
                 ),
                 entity_name="Calibration",
                 entity_id=str(calibration.id),
-                deduplication_key=(
-                    f"calibration:{calibration.id}:"
-                    f"expired:{admin.id}"
-                ),
+                deduplication_key=(f"calibration:{calibration.id}:expired:{admin.id}"),
             )
 
-            result = self.repository.create_if_not_exists(
-                notification
-            )
+            result = self.repository.create_if_not_exists(notification)
 
             if result is not None:
                 created += 1
@@ -94,14 +89,11 @@ class NotificationService:
                 entity_name="Calibration",
                 entity_id=str(calibration.id),
                 deduplication_key=(
-                    f"calibration:{calibration.id}:"
-                    f"expiring:{next_date}:{admin.id}"
+                    f"calibration:{calibration.id}:expiring:{next_date}:{admin.id}"
                 ),
             )
 
-            result = self.repository.create_if_not_exists(
-                notification
-            )
+            result = self.repository.create_if_not_exists(notification)
 
             if result is not None:
                 created += 1
@@ -141,7 +133,7 @@ class NotificationService:
 
         self.repository.mark_as_read(
             notification,
-            datetime.now(timezone.utc),
+            datetime.now(UTC),
         )
 
         self.db.commit()

@@ -1,37 +1,31 @@
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from sqlalchemy import text
-
+from app.api.v1.analytics import router as analytics_router
+from app.api.v1.audit import router as audit_router
+from app.api.v1.auth import router as auth_router
+from app.api.v1.biomedical_equipment import router as biomedical_equipment_router
+from app.api.v1.calibration import router as calibration_router
+from app.api.v1.dashboard import router as dashboard_router
+from app.api.v1.exports import router as exports_router
+from app.api.v1.health import router as health_router
+from app.api.v1.laboratory import router as laboratory_router
+from app.api.v1.laboratory_tests import router as laboratory_tests_router
+from app.api.v1.metrics import router as metrics_router
+from app.api.v1.notifications import router as notifications_router
+from app.api.v1.patients import router as patients_router
+from app.api.v1.reports import router as reports_router
+from app.api.v1.samples import router as samples_router
+from app.api.v1.tasks import router as tasks_router
+from app.api.v1.users import router as users_router
+from app.api.v2.router import router as api_v2_router
 from app.core.config import settings
-from app.db.session import engine
-
 from app.core.logging import configure_logging
 from app.core.middleware import (
     RequestLoggingMiddleware,
     SecurityHeadersMiddleware,
 )
-
-from app.api.v1.users import router as users_router
-from app.api.v1.auth import router as auth_router
-from app.api.v1.laboratory import router as laboratory_router
-from app.api.v1.patients import router as patients_router
-from app.api.v1.samples import router as samples_router
-from app.api.v1.laboratory_tests import router as laboratory_tests_router
-from app.api.v1.reports import router as reports_router
-from app.api.v1.audit import router as audit_router
-from app.api.v1.tasks import router as tasks_router
-from app.api.v1.biomedical_equipment import router as biomedical_equipment_router
-from app.api.v1.calibration import router as calibration_router
-from app.api.v1.notifications import router as notifications_router
-from app.api.v1.health import router as health_router
-from app.api.v1.metrics import router as metrics_router
-from app.api.v2.router import router as api_v2_router
-from app.api.v1.dashboard import router as dashboard_router
-from app.api.v1.exports import router as exports_router
-from app.api.v1.analytics import router as analytics_router
 
 # Configurar logging
 configure_logging()
@@ -52,15 +46,11 @@ app = FastAPI(
 # -------------------------------------------------------------------
 
 allowed_hosts = [
-    host.strip()
-    for host in settings.ALLOWED_HOSTS.split(",")
-    if host.strip()
+    host.strip() for host in settings.ALLOWED_HOSTS.split(",") if host.strip()
 ]
 
 cors_origins = [
-    origin.strip()
-    for origin in settings.CORS_ORIGINS.split(",")
-    if origin.strip()
+    origin.strip() for origin in settings.CORS_ORIGINS.split(",") if origin.strip()
 ]
 
 
@@ -102,33 +92,13 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Endpoints generales
 # -------------------------------------------------------------------
 
+
 @app.get("/")
 def root():
     return {
         "message": "MedLab Platform",
         "status": "Funcionando",
         "version": "1.0.0",
-    }
-
-
-@app.get("/health/db")
-def database_health():
-    """
-    Verifica que PostgreSQL responde correctamente.
-    """
-
-    with engine.connect() as connection:
-
-        result = connection.execute(
-            text("SELECT version();")
-        )
-
-        version = result.scalar()
-
-    return {
-        "status": "ok",
-        "database": "connected",
-        "version": version,
     }
 
 

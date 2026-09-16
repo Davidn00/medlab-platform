@@ -5,6 +5,8 @@ venv/
 .env
 .env.production
 .env.local
+.env.*
+!.env.example
 
 # Archivos de Python
 __pycache__/
@@ -16,6 +18,10 @@ __pycache__/
 # Base de datos SQLite (si se usa temporalmente)
 *.db
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
 .pytest_cache/
 .coverage
 htmlcov/
@@ -26,6 +32,19 @@ venv/
 .idea/
 
 *.log
+
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
 
 # Archivos temporales de Microsoft Office
 ~$*
@@ -41,3 +60,20 @@ celerybeat-schedule-shm
 celerybeat-schedule-wal
 
 medlab_backup.sql
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Ruff
+.ruff_cache/
+
+# Celery
+celerybeat-schedule*
+ 
+# Secrets
+*.pem
+*.key
+*.crt

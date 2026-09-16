@@ -1,4 +1,3 @@
-
 """
 Endpoints v2 para notificaciones.
 
@@ -21,7 +20,6 @@ from fastapi import (
     Depends,
     Query,
 )
-
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -40,7 +38,6 @@ from app.schemas.pagination import (
     PaginatedResponse,
 )
 
-
 router = APIRouter(
     prefix="/notifications",
     tags=["Notifications v2"],
@@ -49,9 +46,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=PaginatedResponse[
-        NotificationResponse
-    ],
+    response_model=PaginatedResponse[NotificationResponse],
 )
 def list_notifications_v2(
     page: int = Query(
@@ -102,4 +97,3 @@ def list_notifications_v2(
             limit,
         ),
     }
-

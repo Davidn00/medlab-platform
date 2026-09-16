@@ -1,4 +1,3 @@
-
 """
 Endpoints REST para pruebas de laboratorio.
 """
@@ -20,7 +19,6 @@ from app.schemas.laboratory_test import (
 from app.schemas.task import TaskResponse
 from app.services.laboratory_test_service import LaboratoryTestService
 from app.tasks.result_tasks import process_laboratory_result
-
 
 router = APIRouter(
     prefix="/laboratory-tests",
@@ -177,12 +175,9 @@ def process_test_result(
     asíncrono mediante Celery.
     """
 
-    task = process_laboratory_result.delay(
-        str(test_id)
-    )
+    task = process_laboratory_result.delay(str(test_id))
 
     return TaskResponse(
         task_id=task.id,
         status=task.status,
     )
-

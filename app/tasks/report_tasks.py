@@ -10,7 +10,6 @@ from uuid import UUID
 
 from app.db.session import SessionLocal
 from app.services.report_service import ReportService
-from app.workers.celery_app import celery_app
 from app.tasks.retry import (
     TASK_RETRY_BACKOFF,
     TASK_RETRY_BACKOFF_MAX,
@@ -18,6 +17,7 @@ from app.tasks.retry import (
     TASK_RETRY_KWARGS,
     TRANSIENT_TASK_ERRORS,
 )
+from app.workers.celery_app import celery_app
 
 # Directorio donde se almacenarán los reportes generados.
 REPORTS_DIR = Path("reports")
@@ -84,4 +84,3 @@ def generate_report(
 
     finally:
         db.close()
-

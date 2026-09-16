@@ -6,10 +6,10 @@ Proyecto: MedLab Platform
 """
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
-from typing import Literal
 
 
 class BiomedicalEquipmentBase(BaseModel):
@@ -60,10 +60,7 @@ class BiomedicalEquipmentBase(BaseModel):
     ] = "ACTIVE"
 
 
-
-class BiomedicalEquipmentCreate(
-    BiomedicalEquipmentBase
-):
+class BiomedicalEquipmentCreate(BiomedicalEquipmentBase):
     """
     Datos necesarios para crear un equipo biomédico.
     """
@@ -109,17 +106,18 @@ class BiomedicalEquipmentUpdate(BaseModel):
         max_length=150,
     )
 
-    status: Literal[
-        "ACTIVE",
-        "INACTIVE",
-        "MAINTENANCE",
-        "RETIRED",
-    ] | None = None
+    status: (
+        Literal[
+            "ACTIVE",
+            "INACTIVE",
+            "MAINTENANCE",
+            "RETIRED",
+        ]
+        | None
+    ) = None
 
 
-class BiomedicalEquipmentResponse(
-    BiomedicalEquipmentBase
-):
+class BiomedicalEquipmentResponse(BiomedicalEquipmentBase):
     """
     Representación de un equipo biomédico
     devuelto por la API.

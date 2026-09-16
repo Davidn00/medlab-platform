@@ -14,7 +14,6 @@ from app.models.sample import Sample
 
 
 class SampleRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -33,9 +32,7 @@ class SampleRepository:
         sample_id: UUID,
     ) -> Sample | None:
 
-        statement = select(Sample).where(
-            Sample.id == sample_id
-        )
+        statement = select(Sample).where(Sample.id == sample_id)
 
         return self.db.scalar(statement)
 
@@ -44,9 +41,7 @@ class SampleRepository:
         sample_code: str,
     ) -> Sample | None:
 
-        statement = select(Sample).where(
-            Sample.sample_code == sample_code
-        )
+        statement = select(Sample).where(Sample.sample_code == sample_code)
 
         return self.db.scalar(statement)
 
@@ -114,38 +109,22 @@ class SampleRepository:
         filters = []
 
         if search:
-            filters.append(
-                Sample.sample_code.ilike(
-                    f"%{search.strip()}%"
-                )
-            )
+            filters.append(Sample.sample_code.ilike(f"%{search.strip()}%"))
 
         if patient_id:
-            filters.append(
-                Sample.patient_id == patient_id
-            )
+            filters.append(Sample.patient_id == patient_id)
 
         if status:
-            filters.append(
-                Sample.status == status
-            )
+            filters.append(Sample.status == status)
 
         if sample_type:
-            filters.append(
-                Sample.sample_type == sample_type
-            )
+            filters.append(Sample.sample_type == sample_type)
 
         if collected_from:
-            filters.append(
-                Sample.collected_at
-                >= collected_from
-            )
+            filters.append(Sample.collected_at >= collected_from)
 
         if collected_to:
-            filters.append(
-                Sample.collected_at
-                <= collected_to
-            )
+            filters.append(Sample.collected_at <= collected_to)
 
         columns = {
             "collected_at": Sample.collected_at,
@@ -155,18 +134,10 @@ class SampleRepository:
 
         column = columns[sort_by]
 
-        ordering = (
-            column.asc()
-            if sort_order == "asc"
-            else column.desc()
-        )
+        ordering = column.asc() if sort_order == "asc" else column.desc()
 
         total = int(
-            self.db.scalar(
-                select(func.count())
-                .select_from(Sample)
-                .where(*filters)
-            )
+            self.db.scalar(select(func.count()).select_from(Sample).where(*filters))
             or 0
         )
 
@@ -178,9 +149,7 @@ class SampleRepository:
                     ordering,
                     Sample.id,
                 )
-                .offset(
-                    (page - 1) * limit
-                )
+                .offset((page - 1) * limit)
                 .limit(limit)
             ).all()
         )

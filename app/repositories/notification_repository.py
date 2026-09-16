@@ -5,7 +5,7 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -45,19 +45,12 @@ class NotificationRepository:
                 entity_id=notification.entity_id,
                 deduplication_key=notification.deduplication_key,
                 is_read=(
-                    notification.is_read
-                    if notification.is_read is not None
-                    else False
+                    notification.is_read if notification.is_read is not None else False
                 ),
-                created_at=(
-                    notification.created_at
-                    or datetime.now(timezone.utc)
-                ),
+                created_at=(notification.created_at or datetime.now(UTC)),
                 read_at=notification.read_at,
             )
-            .on_conflict_do_nothing(
-                index_elements=[Notification.deduplication_key]
-            )
+            .on_conflict_do_nothing(index_elements=[Notification.deduplication_key])
             .returning(Notification.id)
         )
 
@@ -88,9 +81,7 @@ class NotificationRepository:
         )
 
         if unread_only:
-            statement = statement.where(
-                Notification.is_read.is_(False)
-            )
+            statement = statement.where(Notification.is_read.is_(False))
 
         return list(self.db.scalars(statement).all())
 
@@ -147,39 +138,20 @@ class NotificationRepository:
         aplicando paginación y filtros.
         """
 
-        filters = [
-            Notification.user_id == user_id
-        ]
+        filters = [Notification.user_id == user_id]
 
         if unread_only:
-            filters.append(
-                Notification.is_read.is_(False)
-            )
+            filters.append(Notification.is_read.is_(False))
 
         if created_from:
-            filters.append(
-                Notification.created_at
-                >= created_from
-            )
+            filters.append(Notification.created_at >= created_from)
 
         if created_to:
-            filters.append(
-                Notification.created_at
-                <= created_to
-            )
+            filters.append(Notification.created_at <= created_to)
 
-        count_statement = (
-            select(func.count())
-            .select_from(Notification)
-            .where(*filters)
-        )
+        count_statement = select(func.count()).select_from(Notification).where(*filters)
 
-        total = int(
-            self.db.scalar(
-                count_statement
-            )
-            or 0
-        )
+        total = int(self.db.scalar(count_statement) or 0)
 
         ordering = (
             Notification.created_at.asc()
@@ -195,9 +167,7 @@ class NotificationRepository:
                     ordering,
                     Notification.id,
                 )
-                .offset(
-                    (page - 1) * limit
-                )
+                .offset((page - 1) * limit)
                 .limit(limit)
             ).all()
         )

@@ -9,14 +9,13 @@ Este módulo implementa:
 - Decodificación de JWT
 """
 
-from datetime import datetime, timedelta, timezone
+import re
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from pwdlib import PasswordHash
 
 from app.core.config import settings
-
-import re
 
 # ==========================================================
 # Argon2
@@ -51,11 +50,9 @@ def create_access_token(subject: str) -> str:
     Crea un JWT firmado para un usuario.
     """
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
-    expire = now + timedelta(
-        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expire = now + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
         "sub": subject,
@@ -92,6 +89,7 @@ def decode_access_token(token: str):
         },
     )
 
+
 def validate_password_strength(password: str) -> None:
     """
     Valida la fortaleza mínima de una contraseña.
@@ -106,26 +104,16 @@ def validate_password_strength(password: str) -> None:
     """
 
     if len(password) < 12:
-        raise ValueError(
-            "La contraseña debe tener al menos 12 caracteres."
-        )
+        raise ValueError("La contraseña debe tener al menos 12 caracteres.")
 
     if not re.search(r"[A-Z]", password):
-        raise ValueError(
-            "La contraseña debe contener al menos una mayúscula."
-        )
+        raise ValueError("La contraseña debe contener al menos una mayúscula.")
 
     if not re.search(r"[a-z]", password):
-        raise ValueError(
-            "La contraseña debe contener al menos una minúscula."
-        )
+        raise ValueError("La contraseña debe contener al menos una minúscula.")
 
     if not re.search(r"\d", password):
-        raise ValueError(
-            "La contraseña debe contener al menos un número."
-        )
+        raise ValueError("La contraseña debe contener al menos un número.")
 
     if not re.search(r"[^A-Za-z0-9]", password):
-        raise ValueError(
-            "La contraseña debe contener al menos un carácter especial."
-        )
+        raise ValueError("La contraseña debe contener al menos un carácter especial.")

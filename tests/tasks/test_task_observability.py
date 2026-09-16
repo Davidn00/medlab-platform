@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 from app.tasks.report_tasks import generate_report
 
 

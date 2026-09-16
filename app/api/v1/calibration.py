@@ -5,12 +5,16 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-    
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.exceptions import (
+    CalibrationNotFoundError,
+    EquipmentNotFoundError,
+    InvalidCalibrationDatesError,
+)
 from app.db.session import get_db
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
@@ -23,16 +27,9 @@ from app.schemas.calibration import (
     CalibrationResponse,
     CalibrationUpdate,
 )
-
 from app.services.calibration_service import (
     CalibrationService,
 )
-from app.core.exceptions import (
-    CalibrationNotFoundError,
-    EquipmentNotFoundError,
-    InvalidCalibrationDatesError,
-)
-
 
 router = APIRouter(
     prefix="/calibrations",
@@ -64,9 +61,7 @@ def get_calibration_service(
 )
 def create_calibration(
     data: CalibrationCreate,
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Registra una nueva calibración.
@@ -93,9 +88,7 @@ def create_calibration(
     response_model=list[CalibrationResponse],
 )
 def get_calibrations(
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Obtiene todas las calibraciones.
@@ -110,9 +103,7 @@ def get_calibrations(
 )
 def get_expiring_calibrations(
     days: int = 30,
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Obtiene calibraciones próximas a vencer.
@@ -135,9 +126,7 @@ def get_expiring_calibrations(
     response_model=list[CalibrationResponse],
 )
 def get_expired_calibrations(
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Obtiene calibraciones vencidas.
@@ -152,17 +141,13 @@ def get_expired_calibrations(
 )
 def get_calibration_by_id(
     calibration_id: UUID,
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Obtiene una calibración por UUID.
     """
 
-    calibration = service.get_by_id(
-        calibration_id
-    )
+    calibration = service.get_by_id(calibration_id)
 
     if calibration is None:
         raise HTTPException(
@@ -180,9 +165,7 @@ def get_calibration_by_id(
 def update_calibration(
     calibration_id: UUID,
     data: CalibrationUpdate,
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Actualiza una calibración.
@@ -215,9 +198,7 @@ def update_calibration(
 )
 def delete_calibration(
     calibration_id: UUID,
-    service: CalibrationService = Depends(
-        get_calibration_service
-    ),
+    service: CalibrationService = Depends(get_calibration_service),
 ):
     """
     Elimina una calibración.

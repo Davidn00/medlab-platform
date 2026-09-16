@@ -15,7 +15,6 @@ from app.models.maintenance_record import (
 
 
 class MaintenanceRecordRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -37,13 +36,8 @@ class MaintenanceRecordRepository:
 
         return (
             self.db.query(MaintenanceRecord)
-            .filter(
-                MaintenanceRecord.maintenance_id
-                == maintenance_id
-            )
-            .order_by(
-                MaintenanceRecord.performed_at.desc()
-            )
+            .filter(MaintenanceRecord.maintenance_id == maintenance_id)
+            .order_by(MaintenanceRecord.performed_at.desc())
             .all()
         )
 
@@ -54,12 +48,7 @@ class MaintenanceRecordRepository:
 
         return (
             self.db.query(MaintenanceRecord)
-            .filter(
-                MaintenanceRecord.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                MaintenanceRecord.performed_at.desc()
-            )
+            .filter(MaintenanceRecord.equipment_id == equipment_id)
+            .order_by(MaintenanceRecord.performed_at.desc())
             .all()
         )

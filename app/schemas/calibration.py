@@ -1,4 +1,3 @@
-
 """
 Schemas Pydantic para calibraciones.
 

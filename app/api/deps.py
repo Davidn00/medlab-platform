@@ -12,7 +12,6 @@ from app.core.security import decode_access_token
 from app.db.session import get_db
 from app.repositories.user_repository import UserRepository
 
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 repository = UserRepository()
@@ -32,7 +31,10 @@ def get_current_user(
         user_id = UUID(payload["sub"])
 
     except Exception:
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(
+            status_code=401,
+            detail="Token inválido",
+        ) from None
 
     user = repository.get_by_id(db, user_id)
 

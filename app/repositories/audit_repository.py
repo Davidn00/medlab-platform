@@ -12,7 +12,6 @@ from app.models.audit_log import AuditLog
 
 
 class AuditRepository:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -39,11 +38,7 @@ class AuditRepository:
         limit: int = 100,
     ) -> list[AuditLog]:
 
-        statement = (
-            select(AuditLog)
-            .order_by(AuditLog.created_at.desc())
-            .limit(limit)
-        )
+        statement = select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit)
 
         return list(self.db.scalars(statement).all())
 
@@ -63,11 +58,7 @@ class AuditRepository:
                 AuditLog.entity_name == entity_name,
                 AuditLog.entity_id == entity_id,
             )
-            .order_by(
-                AuditLog.created_at.asc()
-            )
+            .order_by(AuditLog.created_at.asc())
         )
 
-        return list(
-            self.db.scalars(statement).all()
-        )
+        return list(self.db.scalars(statement).all())

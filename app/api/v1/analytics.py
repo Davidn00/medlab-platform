@@ -24,7 +24,6 @@ from app.services.analytics_service import (
     AnalyticsService,
 )
 
-
 router = APIRouter(
     prefix="/analytics",
     tags=["Analytics"],
@@ -41,13 +40,7 @@ ANALYTICS_ROLES = [
 @router.get(
     "",
     response_model=AnalyticsResponse,
-    dependencies=[
-        Depends(
-            require_roles(
-                ANALYTICS_ROLES
-            )
-        )
-    ],
+    dependencies=[Depends(require_roles(ANALYTICS_ROLES))],
 )
 def get_analytics(
     start_date: date | None = Query(
@@ -72,29 +65,18 @@ def get_analytics(
         end_date = today
 
     if start_date is None:
-        start_date = (
-            end_date
-            - timedelta(days=6)
-        )
+        start_date = end_date - timedelta(days=6)
 
     if start_date > end_date:
         raise HTTPException(
             status_code=400,
-            detail=(
-                "start_date no puede ser "
-                "posterior a end_date."
-            ),
+            detail=("start_date no puede ser posterior a end_date."),
         )
 
-    if (
-        end_date - start_date
-    ).days > 366:
+    if (end_date - start_date).days > 366:
         raise HTTPException(
             status_code=400,
-            detail=(
-                "El periodo máximo permitido "
-                "es de 366 días."
-            ),
+            detail=("El periodo máximo permitido es de 366 días."),
         )
 
     service = AnalyticsService(db)

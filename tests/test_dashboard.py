@@ -7,23 +7,16 @@ def admin_headers(client):
     response = client.post(
         "/api/v1/auth/login",
         data={
-            "username":
-                "admin@medlab.com",
-            "password":
-                "Admin123!SecurePassword",
+            "username": "admin@medlab.com",
+            "password": "Admin123!SecurePassword",
         },
     )
 
     assert response.status_code == 200
 
-    token = response.json()[
-        "access_token"
-    ]
+    token = response.json()["access_token"]
 
-    return {
-        "Authorization":
-            f"Bearer {token}"
-    }
+    return {"Authorization": f"Bearer {token}"}
 
 
 def test_dashboard_statistics(
@@ -62,8 +55,6 @@ def test_dashboard_statistics(
 def test_dashboard_requires_authentication(
     client,
 ):
-    response = client.get(
-        "/api/v1/dashboard/statistics"
-    )
+    response = client.get("/api/v1/dashboard/statistics")
 
     assert response.status_code == 401

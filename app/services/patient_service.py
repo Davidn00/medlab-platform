@@ -10,13 +10,11 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.models.audit_log import AuditAction
 from app.models.patient import Patient
 from app.repositories.patient_repository import PatientRepository
 from app.schemas.patient import PatientCreate, PatientUpdate
-from app.models.audit_log import AuditAction
 from app.services.audit_service import AuditService
-from uuid import UUID
-
 
 
 class PatientService:
@@ -38,19 +36,14 @@ class PatientService:
         Crea un nuevo paciente.
         """
 
-        existing_patient = (
-            self.repository.get_by_medical_record(
-                patient_data.medical_record
-            )
+        existing_patient = self.repository.get_by_medical_record(
+            patient_data.medical_record
         )
 
         if existing_patient:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=(
-                    "Ya existe un paciente con ese "
-                    "número de expediente."
-                ),
+                detail=("Ya existe un paciente con ese número de expediente."),
             )
 
         patient = Patient(
@@ -65,7 +58,7 @@ class PatientService:
         patient = self.repository.create(patient)
 
         self.audit.log(
-            user_id=user_id,  
+            user_id=user_id,
             entity_name="Patient",
             entity_id=str(patient.id),
             action=AuditAction.CREATE,
@@ -73,7 +66,6 @@ class PatientService:
         )
 
         return patient
-    
 
     def get_patient(
         self,
@@ -118,9 +110,7 @@ class PatientService:
 
         patient = self.get_patient(patient_id)
 
-        update_data = patient_data.model_dump(
-            exclude_unset=True
-        )
+        update_data = patient_data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
             setattr(patient, field, value)
@@ -136,7 +126,6 @@ class PatientService:
         )
 
         return patient
-        
 
     def delete_patient(
         self,

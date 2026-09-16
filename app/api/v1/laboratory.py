@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends
 from app.core.permissions import require_roles
 from app.models.user import User, UserRole
 
-
 router = APIRouter(
     prefix="/laboratory",
     tags=["Laboratory"],
@@ -19,10 +18,12 @@ router = APIRouter(
 @router.post("/samples")
 def register_sample(
     current_user: User = Depends(
-        require_roles([
-            UserRole.ADMIN,
-            UserRole.TECHNICIAN,
-        ])
+        require_roles(
+            [
+                UserRole.ADMIN,
+                UserRole.TECHNICIAN,
+            ]
+        )
     ),
 ):
     """
@@ -38,10 +39,12 @@ def register_sample(
 @router.get("/results")
 def get_results(
     current_user: User = Depends(
-        require_roles([
-            UserRole.ADMIN,
-            UserRole.DOCTOR,
-        ])
+        require_roles(
+            [
+                UserRole.ADMIN,
+                UserRole.DOCTOR,
+            ]
+        )
     ),
 ):
     """

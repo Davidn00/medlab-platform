@@ -14,7 +14,6 @@ from app.models.maintenance import MaintenanceType
 
 
 class MaintenanceScheduleCreate(BaseModel):
-
     equipment_id: UUID
 
     name: str = Field(
@@ -36,7 +35,6 @@ class MaintenanceScheduleCreate(BaseModel):
 
 
 class MaintenanceScheduleUpdate(BaseModel):
-
     name: str | None = Field(
         default=None,
         min_length=1,
@@ -61,10 +59,7 @@ class MaintenanceScheduleUpdate(BaseModel):
     )
 
 
-class MaintenanceScheduleResponse(
-    BaseModel
-):
-
+class MaintenanceScheduleResponse(BaseModel):
     id: UUID
 
     equipment_id: UUID

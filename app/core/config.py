@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
-     # ==========================================================
+    # ==========================================================
     # Usuario administrador inicial
     # ==========================================================
 
@@ -105,17 +105,15 @@ class Settings(BaseSettings):
         validation_alias="CELERY_TASK_RETRY_JITTER",
     )
 
-
-    
     # ======================================
     # Configuración del modelo
     # ======================================
-    
+
     model_config = SettingsConfigDict(
-        env_file=".env",          # Archivo que contiene las variables
+        env_file=".env",  # Archivo que contiene las variables
         env_file_encoding="utf-8",
         case_sensitive=True,
-        extra="ignore"  # Ignora variables no definidas en la clase
+        extra="ignore",  # Ignora variables no definidas en la clase
     )
 
     # ======================================
@@ -126,9 +124,7 @@ class Settings(BaseSettings):
 
     CORS_ORIGINS: str = ""
 
-    ALLOWED_HOSTS: str = (
-        "localhost,127.0.0.1"
-    )
+    ALLOWED_HOSTS: str = "localhost,127.0.0.1"
 
     ENABLE_DOCS: bool = True
 
@@ -137,8 +133,6 @@ class Settings(BaseSettings):
     LOGIN_RATE_WINDOW_SECONDS: int = 60
 
     reports_dir: str = "/app/reports"
-
-
 
 
 # Creamos una única instancia de configuración.

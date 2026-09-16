@@ -7,13 +7,7 @@ MedLab Platform
 import logging
 import sys
 
-
-LOG_FORMAT = (
-    "%(asctime)s | "
-    "%(levelname)s | "
-    "%(name)s | "
-    "%(message)s"
-)
+LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
 
 def configure_logging() -> None:
@@ -31,9 +25,7 @@ def configure_logging() -> None:
     logging.getLogger("uvicorn.access").setLevel(logging.INFO)
     logging.getLogger("uvicorn.error").setLevel(logging.INFO)
 
-    logging.getLogger("sqlalchemy.engine").setLevel(
-        logging.WARNING
-    )
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
     logging.getLogger("celery").setLevel(logging.INFO)
 

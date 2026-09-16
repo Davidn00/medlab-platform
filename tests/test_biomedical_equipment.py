@@ -56,9 +56,7 @@ def test_get_equipment(client: TestClient):
 
     assert create_response.status_code == 201
 
-    response = client.get(
-        "/api/v1/equipment"
-    )
+    response = client.get("/api/v1/equipment")
 
     assert response.status_code == 200
 
@@ -66,6 +64,7 @@ def test_get_equipment(client: TestClient):
 
     assert isinstance(data, list)
     assert len(data) >= 1
+
 
 def test_get_equipment_by_id(client: TestClient):
     """
@@ -88,9 +87,7 @@ def test_get_equipment_by_id(client: TestClient):
 
     equipment_id = create_response.json()["id"]
 
-    response = client.get(
-        f"/api/v1/equipment/{equipment_id}"
-    )
+    response = client.get(f"/api/v1/equipment/{equipment_id}")
 
     assert response.status_code == 200
 
@@ -99,6 +96,7 @@ def test_get_equipment_by_id(client: TestClient):
     assert data["id"] == equipment_id
     assert data["serial_number"] == "TEST-MICRO-001"
 
+
 def test_get_nonexistent_equipment(
     client: TestClient,
 ):
@@ -106,19 +104,14 @@ def test_get_nonexistent_equipment(
     Un equipo inexistente debe devolver 404.
     """
 
-    equipment_id = (
-        "550e8400-e29b-41d4-a716-446655440000"
-    )
+    equipment_id = "550e8400-e29b-41d4-a716-446655440000"
 
-    response = client.get(
-        f"/api/v1/equipment/{equipment_id}"
-    )
+    response = client.get(f"/api/v1/equipment/{equipment_id}")
 
     assert response.status_code == 404
 
-    assert response.json()["detail"] == (
-        "Equipo biomédico no encontrado."
-    )
+    assert response.json()["detail"] == ("Equipo biomédico no encontrado.")
+
 
 def test_duplicate_equipment_serial_number(
     client: TestClient,
@@ -192,6 +185,7 @@ def test_update_equipment(
 
     assert data["location"] == "Laboratorio de Pesaje"
 
+
 def test_delete_equipment(
     client: TestClient,
 ):
@@ -215,15 +209,10 @@ def test_delete_equipment(
 
     equipment_id = create_response.json()["id"]
 
-    delete_response = client.delete(
-        f"/api/v1/equipment/{equipment_id}"
-    )
+    delete_response = client.delete(f"/api/v1/equipment/{equipment_id}")
 
     assert delete_response.status_code == 204
 
-    get_response = client.get(
-        f"/api/v1/equipment/{equipment_id}"
-    )
+    get_response = client.get(f"/api/v1/equipment/{equipment_id}")
 
     assert get_response.status_code == 404
-

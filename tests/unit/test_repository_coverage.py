@@ -5,7 +5,7 @@ Se mockea la sesión SQLAlchemy para validar la construcción de consultas
 y el contrato del repository sin requerir una base de datos real.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -18,13 +18,9 @@ from app.repositories.notification_repository import (
 def test_notification_repository_create_if_not_exists_inserted():
     db = MagicMock()
 
-    db.execute.return_value.scalar_one_or_none.return_value = (
-        "n1"
-    )
+    db.execute.return_value.scalar_one_or_none.return_value = "n1"
 
-    db.get.return_value = SimpleNamespace(
-        id="n1"
-    )
+    db.get.return_value = SimpleNamespace(id="n1")
 
     repository = NotificationRepository(db)
 
@@ -41,9 +37,7 @@ def test_notification_repository_create_if_not_exists_inserted():
         read_at=None,
     )
 
-    result = repository.create_if_not_exists(
-        notification
-    )
+    result = repository.create_if_not_exists(notification)
 
     assert result.id == "n1"
 
@@ -58,9 +52,7 @@ def test_notification_repository_create_if_not_exists_inserted():
 def test_notification_repository_create_if_not_exists_duplicate():
     db = MagicMock()
 
-    db.execute.return_value.scalar_one_or_none.return_value = (
-        None
-    )
+    db.execute.return_value.scalar_one_or_none.return_value = None
 
     repository = NotificationRepository(db)
 
@@ -73,16 +65,11 @@ def test_notification_repository_create_if_not_exists_duplicate():
         entity_id="c1",
         deduplication_key="dedup-1",
         is_read=False,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
         read_at=None,
     )
 
-    assert (
-        repository.create_if_not_exists(
-            notification
-        )
-        is None
-    )
+    assert repository.create_if_not_exists(notification) is None
 
     db.get.assert_not_called()
 
@@ -103,34 +90,19 @@ def test_notification_repository_queries_and_count():
 
     repository = NotificationRepository(db)
 
-    assert (
-        repository.get_by_id("n1")
-        is db.get.return_value
-    )
+    assert repository.get_by_id("n1") is db.get.return_value
 
-    assert (
-        repository.get_for_user("u1")
-        == ["n1", "n2"]
-    )
+    assert repository.get_for_user("u1") == ["n1", "n2"]
 
-    assert (
-        repository.get_for_user(
-            "u1",
-            unread_only=True,
-            limit=10,
-        )
-        == ["n1", "n2"]
-    )
+    assert repository.get_for_user(
+        "u1",
+        unread_only=True,
+        limit=10,
+    ) == ["n1", "n2"]
 
-    assert (
-        repository.get_active_admins()
-        == ["n1", "n2"]
-    )
+    assert repository.get_active_admins() == ["n1", "n2"]
 
-    assert (
-        repository.count_unread("u1")
-        == 4
-    )
+    assert repository.count_unread("u1") == 4
 
     assert db.scalars.call_count == 3
 
@@ -144,10 +116,7 @@ def test_notification_repository_count_unread_handles_null():
 
     repository = NotificationRepository(db)
 
-    assert (
-        repository.count_unread("u1")
-        == 0
-    )
+    assert repository.count_unread("u1") == 0
 
 
 def test_notification_repository_mark_as_read():
@@ -160,7 +129,7 @@ def test_notification_repository_mark_as_read():
         read_at=None,
     )
 
-    read_at = datetime.now(timezone.utc)
+    read_at = datetime.now(UTC)
 
     result = repository.mark_as_read(
         notification,
@@ -175,6 +144,4 @@ def test_notification_repository_mark_as_read():
 
     db.flush.assert_called_once()
 
-    db.refresh.assert_called_once_with(
-        notification
-    )
+    db.refresh.assert_called_once_with(notification)

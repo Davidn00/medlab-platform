@@ -5,7 +5,7 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 from app.tasks.notification_tasks import (
@@ -17,13 +17,9 @@ from app.tasks.notification_tasks import (
 def test_notify_calibration_expired_creates_notifications():
     calibration = MagicMock()
     calibration.status.value = "expired"
-    calibration.next_calibration_date = (
-        datetime.now(timezone.utc) - timedelta(days=1)
-    )
+    calibration.next_calibration_date = datetime.now(UTC) - timedelta(days=1)
 
-    with patch(
-        "app.tasks.notification_tasks.SessionLocal"
-    ) as session_local:
+    with patch("app.tasks.notification_tasks.SessionLocal") as session_local:
         db = session_local.return_value
 
         with patch(
@@ -52,11 +48,9 @@ def test_notify_calibration_expired_creates_notifications():
 def test_notify_calibration_expiring_creates_notifications():
     calibration = MagicMock()
     calibration.status.value = "valid"
-    calibration.next_calibration_date = datetime.now(timezone.utc) + timedelta(days=10)
+    calibration.next_calibration_date = datetime.now(UTC) + timedelta(days=10)
 
-    with patch(
-        "app.tasks.notification_tasks.SessionLocal"
-    ) as session_local:
+    with patch("app.tasks.notification_tasks.SessionLocal") as session_local:
         db = session_local.return_value
 
         with patch(
@@ -84,9 +78,7 @@ def test_notify_calibration_expiring_creates_notifications():
 
 
 def test_notify_calibration_expired_missing_calibration():
-    with patch(
-        "app.tasks.notification_tasks.SessionLocal"
-    ) as session_local:
+    with patch("app.tasks.notification_tasks.SessionLocal") as session_local:
         db = session_local.return_value
 
         with patch(

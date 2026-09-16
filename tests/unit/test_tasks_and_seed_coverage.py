@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from app.models.laboratory_test import (
-    LabTestStatus,
     LaboratoryTest,
+    LabTestStatus,
     utc_now,
 )
 from app.tasks.result_tasks import (
@@ -18,7 +18,6 @@ from app.tasks.scheduled_tasks import (
     scheduled_health_check,
 )
 
-
 # ==========================================================
 # Scheduled tasks
 # ==========================================================
@@ -27,19 +26,11 @@ from app.tasks.scheduled_tasks import (
 def test_scheduled_health_check_returns_utc_timestamp():
     result = scheduled_health_check.run()
 
-    assert (
-        result["task"]
-        == "scheduled_health_check"
-    )
+    assert result["task"] == "scheduled_health_check"
 
-    assert (
-        result["status"]
-        == "OK"
-    )
+    assert result["status"] == "OK"
 
-    assert result["timestamp"].endswith(
-        "+00:00"
-    )
+    assert result["timestamp"].endswith("+00:00")
 
 
 # ==========================================================
@@ -61,17 +52,17 @@ def test_result_task_processes_test_and_closes_session():
 
     service.process_result.return_value = test
 
-    with patch(
-        "app.db.session.SessionLocal",
-        return_value=db,
-    ), patch(
-        "app.services.laboratory_result_service."
-        "LaboratoryResultService",
-        return_value=service,
+    with (
+        patch(
+            "app.db.session.SessionLocal",
+            return_value=db,
+        ),
+        patch(
+            "app.services.laboratory_result_service.LaboratoryResultService",
+            return_value=service,
+        ),
     ):
-        result = process_laboratory_result.run(
-            "11111111-1111-1111-1111-111111111111"
-        )
+        result = process_laboratory_result.run("11111111-1111-1111-1111-111111111111")
 
     assert result == {
         "test_id": "test-1",
@@ -93,9 +84,7 @@ def test_result_task_closes_session_on_invalid_uuid():
         return_value=db,
     ):
         with pytest.raises(ValueError):
-            process_laboratory_result.run(
-                "not-a-uuid"
-            )
+            process_laboratory_result.run("not-a-uuid")
 
     db.close.assert_called_once()
 
@@ -110,26 +99,17 @@ def test_laboratory_test_model_and_clock():
 
     assert now.tzinfo is not None
 
-    assert (
-        LabTestStatus.PENDING.value
-        == "pending"
-    )
+    assert LabTestStatus.PENDING.value == "pending"
 
     test = LaboratoryTest(
-        sample_id=(
-            "11111111-1111-1111-1111-"
-            "111111111111"
-        ),
+        sample_id=("11111111-1111-1111-1111-111111111111"),
         test_name="Hemoglobina",
     )
 
     assert test.status is None
     status_column = LaboratoryTest.__table__.c.status
 
-    assert (
-        status_column.default.arg
-        == LabTestStatus.PENDING
-    )
+    assert status_column.default.arg == LabTestStatus.PENDING
 
 
 # ==========================================================
@@ -144,20 +124,19 @@ def test_seed_admin_existing_user():
 
     existing = MagicMock()
 
-    (
-        db.query.return_value
-        .filter.return_value
-        .first.return_value
-    ) = existing
+    (db.query.return_value.filter.return_value.first.return_value) = existing
 
-    with patch.object(
-        seed,
-        "SessionLocal",
-        return_value=db,
-    ), patch.object(
-        seed.settings,
-        "ADMIN_EMAIL",
-        "admin@test.local",
+    with (
+        patch.object(
+            seed,
+            "SessionLocal",
+            return_value=db,
+        ),
+        patch.object(
+            seed.settings,
+            "ADMIN_EMAIL",
+            "admin@test.local",
+        ),
     ):
         seed.seed_admin()
 
@@ -171,28 +150,29 @@ def test_seed_admin_creates_user():
 
     db = MagicMock()
 
-    (
-        db.query.return_value
-        .filter.return_value
-        .first.return_value
-    ) = None
+    (db.query.return_value.filter.return_value.first.return_value) = None
 
-    with patch.object(
-        seed,
-        "SessionLocal",
-        return_value=db,
-    ), patch.object(
-        seed.settings,
-        "ADMIN_EMAIL",
-        "admin@test.local",
-    ), patch.object(
-        seed.settings,
-        "ADMIN_FULL_NAME",
-        "Admin Test",
-    ), patch.object(
-        seed.settings,
-        "ADMIN_PASSWORD",
-        "Admin123!SecurePassword",
+    with (
+        patch.object(
+            seed,
+            "SessionLocal",
+            return_value=db,
+        ),
+        patch.object(
+            seed.settings,
+            "ADMIN_EMAIL",
+            "admin@test.local",
+        ),
+        patch.object(
+            seed.settings,
+            "ADMIN_FULL_NAME",
+            "Admin Test",
+        ),
+        patch.object(
+            seed.settings,
+            "ADMIN_PASSWORD",
+            "Admin123!SecurePassword",
+        ),
     ):
         seed.seed_admin()
 
@@ -200,23 +180,15 @@ def test_seed_admin_creates_user():
 
     created = db.add.call_args.args[0]
 
-    assert (
-        created.email
-        == "admin@test.local"
-    )
+    assert created.email == "admin@test.local"
 
-    assert (
-        created.full_name
-        == "Admin Test"
-    )
+    assert created.full_name == "Admin Test"
 
     assert created.is_active is True
 
     db.commit.assert_called_once()
 
-    db.refresh.assert_called_once_with(
-        created
-    )
+    db.refresh.assert_called_once_with(created)
 
     db.close.assert_called_once()
 
@@ -226,9 +198,7 @@ def test_seed_admin_rolls_back_and_closes_on_failure():
 
     db = MagicMock()
 
-    db.query.side_effect = RuntimeError(
-        "database unavailable"
-    )
+    db.query.side_effect = RuntimeError("database unavailable")
 
     with patch.object(
         seed,

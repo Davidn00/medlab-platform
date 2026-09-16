@@ -17,10 +17,7 @@ def admin_headers(client):
 
     assert response.status_code == 200
 
-    return {
-        "Authorization":
-            f"Bearer {response.json()['access_token']}"
-    }
+    return {"Authorization": f"Bearer {response.json()['access_token']}"}
 
 
 def create_equipment(client):
@@ -55,12 +52,9 @@ def test_create_maintenance(client):
             "title": "Mantenimiento preventivo",
             "maintenance_type": "PREVENTIVE",
             "status": "SCHEDULED",
-            "scheduled_date":
-                "2026-10-01T10:00:00Z",
-            "description":
-                "Mantenimiento preventivo anual.",
-            "assigned_to":
-                "Técnico MedLab",
+            "scheduled_date": "2026-10-01T10:00:00Z",
+            "description": "Mantenimiento preventivo anual.",
+            "assigned_to": "Técnico MedLab",
         },
         headers=headers,
     )
@@ -104,9 +98,7 @@ def test_start_maintenance(client):
 
     assert response.status_code == 200
 
-    assert response.json()["status"] == (
-        "IN_PROGRESS"
-    )
+    assert response.json()["status"] == ("IN_PROGRESS")
 
 
 def test_create_maintenance_record(client):
@@ -135,17 +127,12 @@ def test_create_maintenance_record(client):
         json={
             "maintenance_id": maintenance_id,
             "equipment_id": equipment_id,
-            "performed_at":
-                "2026-09-10T10:00:00Z",
-            "performed_by":
-                "Técnico MedLab",
-            "action":
-                "Inspección general del equipo.",
-            "findings":
-                "Equipo en condiciones normales.",
+            "performed_at": "2026-09-10T10:00:00Z",
+            "performed_by": "Técnico MedLab",
+            "action": "Inspección general del equipo.",
+            "findings": "Equipo en condiciones normales.",
             "parts_replaced": None,
-            "notes":
-                "Sin observaciones.",
+            "notes": "Sin observaciones.",
         },
         headers=headers,
     )

@@ -11,10 +11,10 @@ from io import BytesIO
 from app.db.session import SessionLocal
 from app.services.export_service import ExportService
 
-
 # ==========================================================
 # ExportService - JSON
 # ==========================================================
+
 
 def test_export_service_json():
     db = SessionLocal()
@@ -42,6 +42,7 @@ def test_export_service_json():
 # ExportService - CSV
 # ==========================================================
 
+
 def test_export_service_csv():
     db = SessionLocal()
 
@@ -67,6 +68,7 @@ def test_export_service_csv():
 # ==========================================================
 # ExportService - XLSX
 # ==========================================================
+
 
 def test_export_service_xlsx():
     db = SessionLocal()
@@ -97,6 +99,7 @@ def test_export_service_xlsx():
 # ExportService - PDF
 # ==========================================================
 
+
 def test_export_service_pdf():
     db = SessionLocal()
 
@@ -123,10 +126,9 @@ def test_export_service_pdf():
 # Analytics - autenticación
 # ==========================================================
 
+
 def test_analytics_requires_authentication(client):
-    response = client.get(
-        "/api/v1/analytics"
-    )
+    response = client.get("/api/v1/analytics")
 
     assert response.status_code in (
         401,
@@ -138,10 +140,9 @@ def test_analytics_requires_authentication(client):
 # Exports - autenticación
 # ==========================================================
 
+
 def test_export_requires_authentication(client):
-    response = client.get(
-        "/api/v1/exports/patients"
-    )
+    response = client.get("/api/v1/exports/patients")
 
     assert response.status_code in (
         401,
@@ -153,10 +154,10 @@ def test_export_requires_authentication(client):
 # Sample PDF - autenticación
 # ==========================================================
 
+
 def test_sample_pdf_requires_authentication(client):
     response = client.get(
-        "/api/v1/reports/sample/"
-        "00000000-0000-0000-0000-000000000000/pdf"
+        "/api/v1/reports/sample/00000000-0000-0000-0000-000000000000/pdf"
     )
 
     assert response.status_code in (

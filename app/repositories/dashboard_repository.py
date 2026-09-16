@@ -8,30 +8,25 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     func,
     select,
 )
-
 from sqlalchemy.orm import Session
 
 from app.models.biomedical_equipment import (
     BiomedicalEquipment,
 )
-
 from app.models.calibration import (
     Calibration,
 )
-
 from app.models.laboratory_test import (
     LaboratoryTest,
     LabTestStatus,
 )
-
 from app.models.patient import Patient
-
 from app.models.sample import Sample
 
 
@@ -55,20 +50,12 @@ class DashboardRepository:
         Ejecuta COUNT(*) sobre un modelo.
         """
 
-        statement = (
-            select(func.count())
-            .select_from(model)
-        )
+        statement = select(func.count()).select_from(model)
 
         if filters:
-            statement = statement.where(
-                *filters
-            )
+            statement = statement.where(*filters)
 
-        return int(
-            self.db.scalar(statement)
-            or 0
-        )
+        return int(self.db.scalar(statement) or 0)
 
     def get_statistics(
         self,
@@ -77,40 +64,20 @@ class DashboardRepository:
         Obtiene las estadísticas principales.
         """
 
-        now = datetime.now(
-            timezone.utc
-        )
+        now = datetime.now(UTC)
 
         return {
-            "patients": self._count(
-                Patient
-            ),
-
-            "samples": self._count(
-                Sample
-            ),
-
-            "tests": self._count(
-                LaboratoryTest
-            ),
-
-            "equipment": self._count(
-                BiomedicalEquipment
-            ),
-
-            "calibrations": self._count(
-                Calibration
-            ),
-
+            "patients": self._count(Patient),
+            "samples": self._count(Sample),
+            "tests": self._count(LaboratoryTest),
+            "equipment": self._count(BiomedicalEquipment),
+            "calibrations": self._count(Calibration),
             "expired_calibrations": self._count(
                 Calibration,
-                Calibration.next_calibration_date
-                < now,
+                Calibration.next_calibration_date < now,
             ),
-
             "pending_tests": self._count(
                 LaboratoryTest,
-                LaboratoryTest.status
-                == LabTestStatus.PENDING,
+                LaboratoryTest.status == LabTestStatus.PENDING,
             ),
         }

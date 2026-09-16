@@ -12,7 +12,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class MaintenanceRecordCreate(BaseModel):
-
     maintenance_id: UUID
 
     equipment_id: UUID
@@ -37,10 +36,7 @@ class MaintenanceRecordCreate(BaseModel):
     notes: str | None = None
 
 
-class MaintenanceRecordResponse(
-    MaintenanceRecordCreate
-):
-
+class MaintenanceRecordResponse(MaintenanceRecordCreate):
     id: UUID
 
     created_at: datetime

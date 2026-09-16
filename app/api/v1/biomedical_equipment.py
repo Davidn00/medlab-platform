@@ -8,11 +8,13 @@ Proyecto: MedLab Platform
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import exc
 from sqlalchemy.orm import Session
-from app.core.exceptions import EquipmentNotFoundError
-from app.core.exceptions import EquipmentNotFoundError
 
+from app.core.exceptions import (
+    EquipmentAlreadyExistsError,
+    EquipmentHasCalibrationsError,
+    EquipmentNotFoundError,
+)
 from app.db.session import get_db
 from app.repositories.biomedical_equipment_repository import (
     BiomedicalEquipmentRepository,
@@ -25,16 +27,9 @@ from app.schemas.biomedical_equipment import (
     BiomedicalEquipmentResponse,
     BiomedicalEquipmentUpdate,
 )
-from app.core.exceptions import (
-    EquipmentAlreadyExistsError,
-    EquipmentHasCalibrationsError,
-    EquipmentNotFoundError,
-)
+from app.schemas.calibration import CalibrationResponse
 from app.services.biomedical_equipment_service import BiomedicalEquipmentService
 from app.services.calibration_service import CalibrationService
-from app.repositories.calibration_repository import CalibrationRepository
-from app.schemas.calibration import CalibrationResponse
-
 
 router = APIRouter(
     prefix="/equipment",
@@ -55,7 +50,7 @@ def get_equipment_service(
 
     return BiomedicalEquipmentService(
         equipment_repository=equipment_repository,
-        calibration_repository=calibration_repository
+        calibration_repository=calibration_repository,
     )
 
 
@@ -66,9 +61,7 @@ def get_equipment_service(
 )
 def create_equipment(
     data: BiomedicalEquipmentCreate,
-    service: BiomedicalEquipmentService = Depends(
-        get_equipment_service
-    ),
+    service: BiomedicalEquipmentService = Depends(get_equipment_service),
 ):
     """
     Registra un nuevo equipo biomédico.
@@ -89,9 +82,7 @@ def create_equipment(
     response_model=list[BiomedicalEquipmentResponse],
 )
 def get_equipment(
-    service: BiomedicalEquipmentService = Depends(
-        get_equipment_service
-    ),
+    service: BiomedicalEquipmentService = Depends(get_equipment_service),
 ):
     """
     Obtiene todos los equipos biomédicos.
@@ -106,9 +97,7 @@ def get_equipment(
 )
 def get_equipment_by_id(
     equipment_id: UUID,
-    service: BiomedicalEquipmentService = Depends(
-        get_equipment_service
-    ),
+    service: BiomedicalEquipmentService = Depends(get_equipment_service),
 ):
     """
     Obtiene un equipo por UUID.
@@ -132,9 +121,7 @@ def get_equipment_by_id(
 def update_equipment(
     equipment_id: UUID,
     data: BiomedicalEquipmentUpdate,
-    service: BiomedicalEquipmentService = Depends(
-        get_equipment_service
-    ),
+    service: BiomedicalEquipmentService = Depends(get_equipment_service),
 ):
     """
     Actualiza un equipo biomédico.
@@ -147,18 +134,17 @@ def update_equipment(
         )
 
     except EquipmentNotFoundError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Equipo biomédico no encontrado.",
-            ) from exc
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Equipo biomédico no encontrado.",
+        ) from exc
+
     except EquipmentAlreadyExistsError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(exc),
         ) from exc
 
-   
     return equipment
 
 
@@ -168,9 +154,7 @@ def update_equipment(
 )
 def delete_equipment(
     equipment_id: UUID,
-    service: BiomedicalEquipmentService = Depends(
-        get_equipment_service
-    ),
+    service: BiomedicalEquipmentService = Depends(get_equipment_service),
 ):
     """
     Elimina un equipo biomédico.
@@ -191,6 +175,7 @@ def delete_equipment(
             detail="El equipo biomédico tiene calibraciones asociadas.",
         ) from exc
 
+
 @router.get(
     "/{equipment_id}/calibrations",
     response_model=list[CalibrationResponse],
@@ -204,13 +189,9 @@ def get_equipment_calibrations(
     a un equipo biomédico.
     """
 
-    equipment_repository = BiomedicalEquipmentRepository(
-        db
-    )
+    equipment_repository = BiomedicalEquipmentRepository(db)
 
-    calibration_repository = CalibrationRepository(
-        db
-    )
+    calibration_repository = CalibrationRepository(db)
 
     service = CalibrationService(
         calibration_repository=calibration_repository,
@@ -218,9 +199,7 @@ def get_equipment_calibrations(
     )
 
     try:
-        return service.get_by_equipment_id(
-            equipment_id
-        )
+        return service.get_by_equipment_id(equipment_id)
 
     except EquipmentNotFoundError as exc:
         raise HTTPException(

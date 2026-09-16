@@ -6,10 +6,11 @@ Proyecto: MedLab Platform
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum as PyEnum
 
-from sqlalchemy import DateTime, Enum as SQLEnum, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -78,7 +79,7 @@ class Calibration(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     equipment = relationship(

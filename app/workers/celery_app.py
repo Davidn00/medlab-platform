@@ -1,10 +1,10 @@
+import logging
+
 from celery import Celery
+from celery.schedules import crontab
+from celery.signals import task_failure, task_postrun, task_prerun
 
 from app.core.config import settings
-from celery.schedules import crontab
-
-import logging
-from celery.signals import task_failure, task_postrun, task_prerun
 
 logger = logging.getLogger("medlab.celery")
 
@@ -32,14 +32,12 @@ celery_app.conf.update(
     accept_content=["json"],
     result_expires=3600,
     task_track_started=True,
-
     # ------------------------------------------------------
     # Entrega segura de tareas
     # ------------------------------------------------------
     worker_prefetch_multiplier=1,
     task_acks_late=True,
     task_reject_on_worker_lost=True,
-
     # ------------------------------------------------------
     # Tolerancia ante pérdida temporal de Redis
     # ------------------------------------------------------
@@ -54,7 +52,6 @@ celery_app.conf.update(
             "interval_max": 10,
         },
     },
-    
     # ------------------------------------------------------
     # Reintento de publicación desde productores Celery
     # ------------------------------------------------------
@@ -65,7 +62,6 @@ celery_app.conf.update(
         "interval_step": 2,
         "interval_max": 10,
     },
-    
     # ------------------------------------------------------
     # Backend de resultados Redis
     # ------------------------------------------------------
@@ -77,7 +73,6 @@ celery_app.conf.update(
             "interval_max": 10,
         },
     },
-    
     # ------------------------------------------------------
     # Recuperación de workers
     # ------------------------------------------------------
@@ -86,17 +81,11 @@ celery_app.conf.update(
     task_soft_time_limit=240,
 )
 
-   
 
 # Importación explícita de las tareas del proyecto.
 #
 # La estructura utiliza módulos *_tasks.py en lugar
 # del nombre convencional tasks.py de Celery.
-import app.tasks.calibration_tasks
-import app.tasks.laboratory_tasks
-import app.tasks.notification_tasks
-import app.tasks.report_tasks
-import app.tasks.result_tasks
 
 celery_app.autodiscover_tasks(["app.tasks"])
 
@@ -108,6 +97,7 @@ celery_app.conf.beat_schedule = {
         "args": (30,),
     },
 }
+
 
 @task_prerun.connect
 def celery_task_started(

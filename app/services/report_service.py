@@ -7,27 +7,23 @@ Autor: David
 Proyecto: MedLab Platform
 """
 
-
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import BytesIO
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-
 from sqlalchemy.orm import Session
 
-from app.repositories.sample_repository import SampleRepository
-from app.repositories.audit_repository import AuditRepository
-
-from app.models.calibration import Calibration
 from app.models.biomedical_equipment import BiomedicalEquipment
+from app.models.calibration import Calibration
+from app.repositories.audit_repository import AuditRepository
+from app.repositories.sample_repository import SampleRepository
 
 
 class ReportService:
@@ -49,9 +45,7 @@ class ReportService:
         if value is None:
             return "-"
 
-        return value.strftime(
-            "%Y-%m-%d %H:%M UTC"
-        )
+        return value.strftime("%Y-%m-%d %H:%M UTC")
 
     def _latest_calibration(
         self,
@@ -63,13 +57,8 @@ class ReportService:
 
         return (
             self.db.query(Calibration)
-            .filter(
-                Calibration.equipment_id
-                == equipment_id
-            )
-            .order_by(
-                Calibration.next_calibration_date.desc()
-            )
+            .filter(Calibration.equipment_id == equipment_id)
+            .order_by(Calibration.next_calibration_date.desc())
             .first()
         )
 
@@ -96,10 +85,7 @@ class ReportService:
         - auditoría
         """
 
-        sample = (
-            self.sample_repository
-            .get_by_id(sample_id)
-        )
+        sample = self.sample_repository.get_by_id(sample_id)
 
         if sample is None:
             raise HTTPException(
@@ -114,26 +100,20 @@ class ReportService:
         # Auditoría
         # --------------------------------------------------
 
-        audit_logs = (
-            self.audit_repository
-            .get_by_entity(
-                "Sample",
-                str(sample.id),
-            )
+        audit_logs = self.audit_repository.get_by_entity(
+            "Sample",
+            str(sample.id),
         )
 
         for test in tests:
             audit_logs.extend(
-                self.audit_repository
-                .get_by_entity(
+                self.audit_repository.get_by_entity(
                     "LaboratoryTest",
                     str(test.id),
                 )
             )
 
-        audit_logs.sort(
-            key=lambda item: item.created_at
-        )
+        audit_logs.sort(key=lambda item: item.created_at)
 
         # --------------------------------------------------
         # PDF
@@ -282,15 +262,11 @@ class ReportService:
             ["Status", sample.status.value],
             [
                 "Collected",
-                self._format_datetime(
-                    sample.collected_at
-                ),
+                self._format_datetime(sample.collected_at),
             ],
             [
                 "Received",
-                self._format_datetime(
-                    sample.received_at
-                ),
+                self._format_datetime(sample.received_at),
             ],
         ]
 
@@ -439,32 +415,22 @@ class ReportService:
 
         for test in tests:
             if test.equipment is not None:
-                equipment_ids.add(
-                    test.equipment.id
-                )
+                equipment_ids.add(test.equipment.id)
 
         for equipment_id in equipment_ids:
             equipment = (
-                self.db.query(
-                    BiomedicalEquipment
-                )
-                .filter(
-                    BiomedicalEquipment.id == equipment_id
-                )
+                self.db.query(BiomedicalEquipment)
+                .filter(BiomedicalEquipment.id == equipment_id)
                 .first()
             )
 
             if equipment is None:
                 continue
 
-            calibration = self._latest_calibration(
-                equipment.id
-            )
+            calibration = self._latest_calibration(equipment.id)
 
             calibration_status = (
-                calibration.status.value
-                if calibration
-                else "not_available"
+                calibration.status.value if calibration else "not_available"
             )
 
             equipment_data.append(
@@ -556,17 +522,11 @@ class ReportService:
         ]
 
         for log in audit_logs:
-            user_name = (
-                log.user.full_name
-                if log.user
-                else "System"
-            )
+            user_name = log.user.full_name if log.user else "System"
 
             audit_data.append(
                 [
-                    self._format_datetime(
-                        log.created_at
-                    ),
+                    self._format_datetime(log.created_at),
                     log.entity_name,
                     log.action.value,
                     user_name,
@@ -643,16 +603,11 @@ class ReportService:
 
         story.append(Spacer(1, 0.7 * cm))
 
-        generated = datetime.now(
-            timezone.utc
-        )
+        generated = datetime.now(UTC)
 
         story.append(
             Paragraph(
-                "Generated: "
-                + generated.strftime(
-                    "%Y-%m-%d %H:%M UTC"
-                ),
+                "Generated: " + generated.strftime("%Y-%m-%d %H:%M UTC"),
                 small_style,
             )
         )

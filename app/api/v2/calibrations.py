@@ -1,4 +1,3 @@
-
 """
 Endpoints v2 para calibraciones.
 
@@ -20,16 +19,22 @@ from uuid import UUID
 from fastapi import (
     APIRouter,
     Depends,
+    HTTPException,
     Query,
 )
-
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.exceptions import (
+    EquipmentNotFoundError,
+)
 from app.core.permissions import require_roles
 from app.db.session import get_db
 from app.models.calibration import CalibrationStatus
 from app.models.user import User, UserRole
+from app.repositories.biomedical_equipment_repository import (
+    BiomedicalEquipmentRepository,
+)
 from app.repositories.calibration_repository import (
     CalibrationRepository,
 )
@@ -39,23 +44,12 @@ from app.repositories.pagination import (
 from app.schemas.calibration import (
     CalibrationResponse,
 )
-from app.schemas.pagination import (
-    PaginatedResponse,
-)
-from fastapi import HTTPException
-
-from app.core.exceptions import (
-    EquipmentNotFoundError,
-)
-
-from app.repositories.biomedical_equipment_repository import (
-    BiomedicalEquipmentRepository,
-)
-
 from app.schemas.calibration_history import (
     CalibrationHistoryResponse,
 )
-
+from app.schemas.pagination import (
+    PaginatedResponse,
+)
 from app.services.calibration_history_service import (
     CalibrationHistoryService,
 )
@@ -68,9 +62,7 @@ router = APIRouter(
 
 @router.get(
     "",
-    response_model=PaginatedResponse[
-        CalibrationResponse
-    ],
+    response_model=PaginatedResponse[CalibrationResponse],
     dependencies=[
         Depends(
             require_roles(
@@ -147,6 +139,7 @@ def list_calibrations_v2(
         ),
     }
 
+
 @router.get(
     "/equipment/{equipment_id}/history",
     response_model=CalibrationHistoryResponse,
@@ -171,9 +164,7 @@ def get_calibration_history(
     )
 
     try:
-        history = service.get_history(
-            equipment_id
-        )
+        history = service.get_history(equipment_id)
 
         return CalibrationHistoryResponse(
             equipment_id=history["equipment_id"],

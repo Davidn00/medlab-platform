@@ -15,7 +15,7 @@ def test_root(client):
     data = response.json()
 
     assert "message" in data
-    
+
 
 def test_login_invalid_credentials(client):
     """
@@ -32,7 +32,6 @@ def test_login_invalid_credentials(client):
     )
 
     assert response.status_code == 401
-
 
 
 def test_protected_endpoint_without_token(client):
