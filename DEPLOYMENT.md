@@ -1,28 +1,36 @@
-# MedLab Platform — Deployment
+## MedLab Platform — Cloud Deployment
 
-## Deployment Architecture
+MedLab Platform is deployed as a containerized FastAPI backend.
 
-MedLab Platform is designed to run as a containerized backend.
+## Cloud Architecture
 
-Production architecture:
-
-GitHub
-   │
-   ▼
-GitHub Actions
-   │
-   ├── Tests
-   ├── Security Scan
-   └── Docker Build
-          │
-          ▼
-      Container Registry
-          │
-          ▼
-        Cloud
-          │
-          ├── FastAPI
-          ├── PostgreSQL
-          ├── Redis
-          ├── Celery Worker
-          └── Celery Beat
+                         GitHub
+                           │
+                           ▼
+                    GitHub Actions
+                           │
+              ┌────────────┼────────────┐
+              │            │            │
+            Ruff         Bandit       Pytest
+              │            │            │
+              └────────────┼────────────┘
+                           │
+                           ▼
+                     Docker Build
+                           │
+                           ▼
+                        Render
+                           │
+             ┌─────────────┴─────────────┐
+             │                           │
+             ▼                           ▼
+      FastAPI Web Service         Key Value / Valkey
+             │                           │
+       ┌─────┼─────┐                     │
+       │     │     │                     │
+     API  Worker  Beat                   │
+       │     │     │                     │
+       └─────┴─────┴─────────────────────┘
+                           │
+                           ▼
+                    Neon PostgreSQL
