@@ -1,7 +1,7 @@
 ## MedLab Platform
 
 MedLab Platform is a professional backend platform 
-for biomedicallaboratory management inspired by a LIMS
+for biomedical laboratory management inspired by a LIMS
 (Laboratory Information Management System).
 
 The project demonstrates the design and implementation of a
